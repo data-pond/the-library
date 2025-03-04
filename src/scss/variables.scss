@@ -1,0 +1,13 @@
+
+@use 'vuetify/settings' with (
+  $card-subtitle-font-size: 1rem,
+  $card-subtitle-color: rgba(255, 0, 255, 1),
+  $card-subtitle-opacity: 1,
+);
+
+
+* {
+  .v-card .v-card-subtitle {
+    color: rgb(var(--v-theme-primary)) !important;
+  }
+}

@@ -1,0 +1,4 @@
+.netlify
+dist
+node_modules
+.idea

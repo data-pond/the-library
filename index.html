@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/png" href="/icon.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <script src="/telegram.js"></script>
+
+      <title>The Library</title>
+      <meta name="description" content="The Library is Safe for Children, Adults and Plants and contain a large collection of Free books on the topic of ethics and sustainability" />
+      <style >
+          #app-loading {
+              position: absolute;
+              top: 0;
+              left: 0;
+              bottom: 0;
+              right: 0;
+              width: 100vw;
+              height: 100vh;
+                z-index: 100000;
+                background-color: white;
+          }
+          #app-loading.hidden {
+              //display: none;
+          }
+
+          .hide {
+              display: none !important;
+          }
+
+
+
+      </style>
+      <script>
+          let activeScreen = 0;
+          const maxscreens = 4;
+          let ready = false;
+          let autohide = false;
+          const updateScreen = () => {
+              for (let i=0; i<maxscreens; i++){
+                  if (i === activeScreen) {
+                      document.getElementById(`app-loading-screen-${i}`).classList.remove("hide")
+                  } else {
+                      document.getElementById(`app-loading-screen-${i}`).classList.add("hide")
+                  }
+              }
+          }
+          const interval = setInterval(() => {
+              activeScreen = activeScreen + 1;
+              if (activeScreen>=maxscreens) {
+                  clearInterval(interval);
+                  ready = true
+                  if (autohide) {
+                      document.getElementById("app-loading").classList.add("hide")
+                  }
+              } else {
+                  updateScreen()
+              }
+          },400);
+
+          document.appLoaded = () => {
+              if (ready) {
+                  document.getElementById("app-loading").classList.add("hide")
+              } else {
+                  autohide = true;
+              }
+          }
+      </script>
+  </head>
+  <body>
+
+  <div id="app-loading" style="display: flex;
+       flex-direction: column;
+       justify-content: center; align-items: center; height: 100vh;">
+
+      <div id="app-loading-screen-0" >
+          <h1 class="my-3">DSafe</h1>
+          <h4>Entering the Library</h4>
+      </div>
+      <div id="app-loading-screen-1" class="hide">
+          <h1>Focus</h1>
+          <h3>Breath and find a comfortable space</h3>
+
+      </div>
+      <div id="app-loading-screen-2" class="hide">
+          <h1>Web3 connected</h1>
+          <h3>This App is fully decentralized</h3>
+      </div>
+
+      <div id="app-loading-screen-3" class="hide">
+          <h1>FIRST LEVEL</h1>
+          <h3>online and fully operational</h3>
+      </div>
+
+  </div>
+    <div id="app" ></div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

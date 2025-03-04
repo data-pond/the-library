@@ -1,0 +1,41 @@
+{
+  "name": "@the-library/datapond.earth",
+  "version": "9.0.0",
+  "description": "The Library",
+  "type": "module",
+  "devDependencies": {
+    "@mdi/font": "^7.4.47",
+    "@mdi/js": "^7.4.47",
+    "@permaweb/aoconnect": "^0.0.75",
+    "@piwikpro/vue-piwik-pro": "^1.5.0",
+    "@vitejs/plugin-vue": "^5.2.1",
+    "@vue/tsconfig": "^0.7.0",
+    "arweave": "^1.15.5",
+    "ethers": "^6.13.5",
+    "sass-embedded": "^1.83.4",
+    "typescript": "~5.6.2",
+    "vite": "^6.0.5",
+    "vue-router": "^4.5.0",
+    "vue-tsc": "^2.2.0"
+  },
+  "dependencies": {
+    "@the_library/db": "0.1.1",
+    "@vueuse/core": "^12.7.0",
+    "netlify": "^13.3.3",
+    "vite-plugin-vuetify": "^2.0.4",
+    "vue": "^3.5.13",
+    "vuetify": "^3.7.9"
+  },
+  "scripts": {
+    "dev": "vite --force",
+    "check": "vue-tsc -b",
+    "build": "vite build",
+    "preview": "vite preview",
+    "deploy": "npx netlify-cli deploy -s sparkling-concha-e5e497 -p -d ./dist",
+    "deploy-prod": "npx netlify-cli deploy -s incomparable-gecko-41afa5 -p -d ./dist",
+    "deploy-dev": "npx netlify-cli deploy -s sparkling-concha-e5e497 -d ./dist",
+    "deploy-ar": "npx @outlierventures/arweave-bundler@latest upload ./dist"
+  },
+  "author": "",
+  "license": "ISC"
+}
