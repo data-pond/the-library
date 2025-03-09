@@ -21,7 +21,7 @@
     "vue-tsc": "^2.2.0"
   },
   "dependencies": {
-    "@the_library/db": "*",
+    "@the_library/db": "0.1.2",
     "@vueuse/core": "^12.7.0",
     "netlify": "^13.3.3",
     "vite-plugin-vuetify": "^2.0.4",
