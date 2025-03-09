@@ -1,145 +1,29 @@
 <script setup lang="ts">
 
 import Layout from "@//pages/library/help/Layout.vue";
-import {Web3Provider} from "@ethersproject/providers";
 import {onMounted, ref} from 'vue';
+import {useCoreConnect} from "@//ts/core.ts";
 
-const metaMaskInstalled = ref(false)
-const metamaskConnected = ref(false)
-const coreInstalled = ref(false)
-const account = ref(null)
+const {
+connectToMetaMask,
+metamaskConnected,
+metaMaskInstalled,
+checkMetamaskInstalled,
+coreInstalled,
+checkNetworkOk,
+account,
+userRejectedAppConnect,
+requestNewNetwork,
+networkError
+} = useCoreConnect();
 
-const checkMetamaskInstalled = () => {
-  if (window.ethereum) {
-    console.log('metamask is installed')
-    metaMaskInstalled.value = true
-    connectToMetaMask();
-  } else {
-    console.log('metamask is NOT installed')
-    metaMaskInstalled.value = false
-    setTimeout(() => {
-      checkMetamaskInstalled()
-    }, 5000)
-  }
-}
-const step = ref(1);
-
-const userRejectedAppConnect = ref(false)
-
-const connectToMetaMask = async () : Promise<boolean>=> {
-  if (metaMaskInstalled.value) {
-    if (!metamaskConnected.value) {
-
-      try {
-        const provider = new Web3Provider(window.ethereum);
-        const accounts = await provider.send("eth_requestAccounts", [])
-        metamaskConnected.value = true;
-        account.value = accounts[0];
-        step.value=2
-        console.log('Your account:', account.value)
-        return true
-      } catch (err) {
-        step.value=1;
-        if (err.code === 4001) {
-          // EIP-1193 userRejectedRequest error.
-          // If this happens, the user rejected the connection request.
-          userRejectedAppConnect.value = true;
-        } else {
-          console.error(err)
-        }
-      }
-      return false
-    } else {
-      return true
-    }
-  } else {
-    return false;
-  }
-}
-const networkError = ref(null)
-const requestNewNetwork = async () => {
-  const provider = new Web3Provider(window.ethereum);
-  provider.on("chainChanged", (chainId) => {
-    window.location.reload();
-  })
-  provider.on("accountsChanged", (accounts) => {
-    if (accounts.length === 0) {
-      // MetaMask is locked or the user has not connected any accounts.
-      console.log("Please connect to MetaMask.")
-    } else if (accounts[0] !== account.value) {
-      account.value = accounts[0]
-      console.log('Account changed', account.value)
-    }
-  })
-  try{
-
-    await provider.send(
-        "wallet_switchEthereumChain",
-        [{ chainId: "0x45b" }],
-    )
-    return true
-  } catch (switchError) {
-    // This error code indicates that the chain has not been added to MetaMask.
-    if (switchError.code === 4902) {
-      try {
-        await provider.send( "wallet_addEthereumChain", [
-          {
-            chainId: "0x45b",//1115
-            chainName: "Core Blockchain Testnet",
-            rpcUrls: ["https://rpc.test.btcs.network"] ,
-            nativeCurrency: {
-              symbol: "tCORE",
-              name: "CORE",
-              decimals: 18
-            },
-            blockExplorerUrls: ["https://scan.test.btcs.network"]
-          },
-        ]);
-
-        await provider.send("wallet_switchEthereumChain", [{ chainId: "0x45b" }])
-        coreInstalled.value = true
-        step.value=3;
-        return true;
-      } catch (addError) {
-        console.error(`error while requesting network`, addError)
-        step.value=2;
-        networkError.value=addError;
-        // Handle "add" error.
-        return false;
-      }
-    }
-    // Handle other "switch" errors.
-  }
-};
-
-const checkBalance = () => {
-
-}
-
-const checkNetworkOk = async () : Promise<boolean> => {
-  const provider = new Web3Provider(window.ethereum);
-  const network = await provider.getNetwork()
-  if (network.chainId === 1115) {
-    coreInstalled.value = true
-    step.value=3;
-    console.log('core ready');
-
-    console.log('provider', provider, account.value)
-
-    const balance = await provider.getBalance( account.value )
-    console.log('balance = ', balance.toString())
-    return true;
-  }
-  coreInstalled.value = false
-  step.value=2;
-  return false;
-};
-
+const step = ref(1)
 const checker = async () => {
 
   checkMetamaskInstalled()
 
   if (!metaMaskInstalled.value) {
+
     const installedInterval = setInterval(async () => {
       console.log('check if metamask is installed')
 
@@ -158,6 +42,7 @@ const checker = async () => {
       console.error('not connected for some reason')
       return
     }
+    step.value = 2;
 
     const networkOk = await checkNetworkOk()
     if (!networkOk) {
@@ -167,9 +52,12 @@ const checker = async () => {
         const ok = await checkNetworkOk()
         if (ok) {
           clearInterval(networkInterval)
+          step.value = 3;
           checker();
         }
       }, 5000)
+    } else {
+      step.value = 3;
     }
 
   }
@@ -187,10 +75,161 @@ onMounted( () => {
 </script>
 
 <template>
-<Layout>
+
   <v-container>
 
+    <v-row justify="center">
+      <h1 class="py-2">Get Started with tCORE</h1>
+    </v-row>
 
+
+    <v-row justify="center" >
+    <h3 class="text-grey-darken-2 mb-4">Follow these steps to setup your crypto wallet and get your free tCORE token</h3>
+    </v-row>
+
+    <v-row>
+      <v-col cols="12">
+        <v-card elevation="6">
+          <v-card-item>
+
+            <v-row class="mb-3">
+            <v-col cols="1" class="align-content-center justify-center text-center">
+              <v-icon size="3rem" icon="mdi-numeric-1-circle-outline" color="primary"></v-icon>
+            </v-col>
+            <v-col>
+              <h2>MetaMask</h2>
+              <h4>Install & Connect Metamask</h4>
+            </v-col>
+            </v-row>
+          </v-card-item>
+
+          <v-card-text>
+            MetaMask is the most used crypto wallet on the web
+          </v-card-text>
+          <v-card-text>
+            Follow the instruction @ the official Metamask Website to install it, then come back at this page.
+          </v-card-text>
+
+          <v-card-text>
+            it will auto detect the installation, and go to step2.
+          </v-card-text>
+
+          <v-card-actions>
+            <v-btn variant="tonal" color="black"
+                   v-if="!metaMaskInstalled"
+                   href="https://metamask.io/" target="_blank"
+                   append-icon="mdi-arrow-right" prepend-icon="mdi-download">
+              Install MetaMask
+            </v-btn>
+            <v-btn variant="elevated" color="success"
+                   v-else
+                   append-icon="mdi-check-bold" prepend-icon="mdi-download">
+              Installed
+            </v-btn>
+
+
+          </v-card-actions>
+        </v-card>
+      </v-col>
+
+      <v-col cols="12">
+      <v-card elevation="6">
+        <v-card-item class="mb-3">
+
+          <v-row>
+            <v-col cols="1" class="align-content-center justify-center text-center">
+              <v-icon size="3rem" icon="mdi-numeric-2-circle-outline" color="primary"></v-icon>
+            </v-col>
+            <v-col>
+              <h2>CORE Setup</h2>
+              <h4>Metamask Automatic Config of the tCORE Network</h4>
+            </v-col>
+          </v-row>
+        </v-card-item>
+
+        <v-card-text>
+          Please open your Metamask wallet and accept the datapond.earth connection request.
+        </v-card-text>
+        <v-card-text >
+          Please open your Metamask wallet and accept the tCORE New network. When you are ready, click the check network button below.
+        </v-card-text>
+
+        <v-card-text>
+
+          <v-progress-linear color="primary" height="2rem" :mode="50" />
+
+
+        <v-banner color="primary" class="bg-blue-lighten-5">
+          <v-banner-text class=" text-primary">
+            <strong>
+              <v-icon icon="mdi-cog" color="primary" size="2rem" />
+              The tCORE network will be automatically configured in your MetaMask wallet
+            </strong>
+          </v-banner-text>
+        </v-banner>
+        </v-card-text>
+        <v-card-actions>
+
+          <v-btn variant="elevated" color="primary" prepend-icon="mdi-cog" append-icon="mdi-chevron-right">
+            CHECK  NETWORK
+          </v-btn>
+
+        </v-card-actions>
+
+
+      </v-card>
+      </v-col>
+
+      <v-col cols="12">
+        <v-card elevation="6">
+          <v-card-item>
+
+            <v-row>
+              <v-col cols="1" class="align-content-center justify-center text-center">
+                <v-icon size="3rem" icon="mdi-numeric-3-circle-outline" color="primary"></v-icon>
+              </v-col>
+              <v-col>
+                <h2>1 Free tCORE </h2>
+                <h4>Claim your free tCORE token and start your journey</h4>
+              </v-col>
+            </v-row>
+          </v-card-item>
+
+          <v-card-item class="bg-grey-lighten-3 ma-4">
+            <p>
+              Your Wallet Address:
+            </p>
+
+            <v-row class="bg-white my-3 pa-2">
+              <v-col cols="10">
+
+                {{account}}
+              </v-col>
+              <v-col cols="2" class="justify-end text-right">
+                <v-btn size="small" prepend-icon="mdi-content-copy">
+                  Copy
+                </v-btn>
+              </v-col>
+            </v-row>
+
+          </v-card-item>
+
+          <v-card-actions>
+            <v-btn variant="elevated" color="success" block prepend-icon="mdi-gift" append-icon="mdi-chevron-right">
+
+              Claim your free tCORE
+            </v-btn>
+          </v-card-actions>
+          <v-card-actions>
+            <v-btn variant="tonal" color="black" block prepend-icon="mdi-gift" append-icon="mdi-chevron-right">
+
+              Finish Setup
+            </v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-col>
+    </v-row>
+    <v-row>
     <v-stepper-vertical v-model="step">
       <template v-slot:default="{ step }">
         <v-stepper-vertical-item
@@ -282,10 +321,9 @@ onMounted( () => {
         </v-stepper-vertical-item>
       </template>
     </v-stepper-vertical>
-
+    </v-row>
 
   </v-container>
-</Layout>
 </template>
 
 <style scoped>

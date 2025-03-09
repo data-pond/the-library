@@ -11,8 +11,8 @@
       Durable Crypto Tech.
     </v-card-subtitle>
     <v-card-text  style="max-height: 5rem;min-height: 5rem">
-      <p>The Library is built on top of the durable protocol <a href="">Arweave</a>,
-        and the decentralised <a href="" target="_blank" class="text-primary">AO mega-computer</a>
+      <p>The Library is built with the durable storage protocol <strong>Arweave</strong>,
+        and the bitcoin <strong>CORE</strong> tech.
       </p>
     </v-card-text>
     <v-card-actions class="justify-start mt-2">

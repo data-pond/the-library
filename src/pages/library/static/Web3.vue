@@ -26,7 +26,7 @@ import DSafe from "@//pages/library/info/DSafe.vue";
             </v-card-text>
 
             <v-card-text >
-              Your progress is synchronized and shared using the AO super computer network.
+              Your progress is synchronized and shared using the <a href="https://coredao.org/" target="_blank"> bitcoin CORE</a> smart contract.
             </v-card-text>
 
             <v-card-text >
@@ -35,16 +35,16 @@ import DSafe from "@//pages/library/info/DSafe.vue";
 
 
 
-            <v-card-text class="pa-0 ma-0">
-              <v-img src="/img/AO.png" width="100%"/>
+<!--            <v-card-text class="pa-0 ma-0">-->
+<!--              <v-img src="/img/AO.png" width="100%"/>-->
 
-            </v-card-text>
+<!--            </v-card-text>-->
           </v-card>
         </v-col>
         <v-col cols="12" md="4">
-          <ContributorMode />
-          <Vision />
-          <DSafe />
+          <ContributorMode class="mb-6"/>
+          <Vision  class="mb-6"/>
+          <DSafe  class="mb-6"/>
         </v-col>
 
       </v-row>

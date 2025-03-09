@@ -3,9 +3,9 @@
 import Layout from "@//pages/library/Layout.vue";
 import {hasStartedBestBookCoverContest} from "@//ts/vote.ts";
 import {getAllPatches, loadSyncedData} from "@the_library/db";
-import {ref} from 'vue'
+import {onMounted, ref} from 'vue'
 import {getAllPatchesSince, getNbPatches} from "@the_library/db";
-import {Web3Provider} from "@ethersproject/providers";
+import {useCoreConnect, useCoreContract} from "@//ts/core.ts";
 
 const bookCoverLink = hasStartedBestBookCoverContest() ? `/vote/bestCovers` : '/help/voteBestCover'
 
@@ -13,20 +13,38 @@ const currentLevel = ref(null)
 const progress = ref(0)
 const computingLevel = ref(true)
 const levelUp = ref(false)
-const coreInstalled = ref(false)
-const metaMaskInstalled = ref(false)
-const resumeInstall = ref(false)
 
-if (window.ethereum) {
-  metaMaskInstalled.value = true
-  const provider = new Web3Provider(window.ethereum); // Updated to Web3Provider
-  provider.send("eth_requestAccounts", []).then(() => {
-    coreInstalled.value = true;
-  }).catch((e) => {
-    console.error(e)
-  })
 
-}
+const {
+  connectToMetaMask,
+  metamaskConnected,
+  metaMaskInstalled,
+  checkMetamaskInstalled,
+  coreInstalled,
+  checkNetworkOk,
+  account,
+  userRejectedAppConnect,
+  requestNewNetwork,
+  networkError
+} = useCoreConnect();
+
+const {hasAccount, getBalance} = useCoreContract()
+
+const has = ref(false)
+
+onMounted(async () => {
+  checkMetamaskInstalled()
+  await connectToMetaMask()
+  await checkNetworkOk()
+  if (coreInstalled.value) {
+    has.value = await hasAccount()
+    if (has.value) {
+      const bal = await getBalance()
+      console.log('bal:', bal)
+    }
+  }
+})
+
 
 
 getAllPatches().then(async (patches) => {
@@ -58,10 +76,9 @@ getAllPatches().then(async (patches) => {
     <v-container>
       <div>
         <v-row>
-          <v-col cols="12" v-if="!metaMaskInstalled">
+          <v-col cols="12" v-if="!metaMaskInstalled || !metamaskConnected || !coreInstalled">
             <v-card elevation="3" class="fill-height"
                     rounded
-
                     to="/help/installCore_1"
                     color="primary" style="min-height:15rem">
               <v-card-item class="align-content-center fill-height">
@@ -72,6 +89,8 @@ getAllPatches().then(async (patches) => {
                   <v-col cols="9" md="8">
                     <h1>Install CORE to enable community voting !</h1>
 
+                    {{metaMaskInstalled}} -
+                    {{metamaskConnected}} - {{coreInstalled}}
                     <p>
                       Unlock community features, track your progress, and vote on your favorite books.
                     </p>
@@ -169,6 +188,41 @@ getAllPatches().then(async (patches) => {
                        border append-icon="mdi-chevron-right">
                   <strong>Vote Now</strong>
                 </v-btn>
+              </v-card-actions>
+            </v-card>
+          </v-col>
+
+          <v-col cols="12" md="6" v-if="coreInstalled">
+            <v-card color="orange-lighten-2" class="fill-height"
+                    style="background-image: url(/img/core_logo.svg);
+                    background-repeat: no-repeat;
+                    background-position: top right;
+                    background-size: contain">
+              <v-card-title>
+                CORE Active
+              </v-card-title>
+
+              <v-card-text>
+                The CORE network is Online and Ready
+              </v-card-text>
+              <v-card-actions class="bg-white">
+
+                <div v-if="has">
+                  <v-icon icon="mdi-check-bold" size="2rem" color="success"></v-icon>
+
+                  Your account is registered
+                </div>
+                <div v-else>
+                  <v-btn color="primary" to="/wallet/registerTCore">
+                    Click To register
+                  </v-btn>
+                </div>
+
+<!--                <div v-if="has">-->
+<!--                  Your Account Number: {{account}}-->
+<!--                </div>-->
+<!--                -->
+
               </v-card-actions>
             </v-card>
           </v-col>

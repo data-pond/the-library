@@ -2,6 +2,10 @@ export const TronConfig = {
     contractId: 'TMgkEq21VXQTD5PvpEmsuoVN5T1LYmsiPA'
 };
 
+export const CoreConfig = {
+    contractId: '0xa975e9C546BAd16fFFd7Aa2Fa659d8750aA69713'
+}
+
 /**
  *
  * TBwAwYByqBJaH2uDyx9qko8anGxoNhboiZ

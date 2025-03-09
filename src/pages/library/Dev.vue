@@ -70,7 +70,6 @@ import AoConnect from "@//components/AoConnect.vue";
               Click to access the Library Admin Dashboard to manage your Library content.
             </v-card-text>
             <v-card-actions>
-
               <v-btn to="/admin" color="primary" size="large">
                 Library Admin Dashboard
               </v-btn>

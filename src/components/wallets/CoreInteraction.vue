@@ -12,9 +12,13 @@ import {
 import {Contract} from "ethers";
 import {Web3Provider} from "@ethersproject/providers";
 
-const contractAddress = '0x0bBe33489bF3d5b027851C2D488f70DcCf13733c';
-import LibraryArtifact from './Library2.json';
+const contractAddress = CoreConfig.contractId;
+
 import {getAllPatchesSince, loadSyncedData} from "@the_library/db";
+
+import LibraryArtifact from './Library2.json';
+import {CoreConfig} from "@//components/wallets/config.ts";
+import ReviewVotes from "@//components/vote/ReviewVotes.vue";
 
 const LibraryAbi = LibraryArtifact.abi;
 
@@ -114,66 +118,38 @@ const userName = ref('')
 </script>
 
 <template>
-  <v-card v-if="waitingForWalletAction">
-    <v-card-title>
-      Waiting for Wallet Action
-    </v-card-title>
-    <v-card-text>
-      Accept the transaction in your metamask Wallet
-    </v-card-text>
-  </v-card>
-  <v-card v-if="executing">
-    <v-card-title>
-      BlockChain Active
-    </v-card-title>
-    <v-card-text>
-      Executing some BlockChain Code
-    </v-card-text>
-  </v-card>
-  <v-card v-if="!executing && !waitingForWalletAction">
-    <v-card-title>
-      Core Status
-    </v-card-title>
-    <v-card-text>
-      Core is Connected
-    </v-card-text>
-    <v-card-text v-if="hasAccount && !loading">
-      UserName: {{ infos.username }}
-      <br/>
-      Patch needed to Sync: {{ nbRecordsToSync }}
+  <ReviewVotes v-if="!executing && !waitingForWalletAction"/>
+  <v-row>
+    <v-col cols="12">
+      <v-card v-if="!executing && !waitingForWalletAction">
+        <v-card-title>
+          Core Status
+        </v-card-title>
+        <v-card-text>
+          Core is Connected
+        </v-card-text>
+        <v-card-text v-if="hasAccount && !loading">
+          UserName: {{ infos.username }}
+          <br/>
+          Patch needed to Sync: {{ nbRecordsToSync }}
 
-    </v-card-text>
-    <v-card-text v-if="!hasAccount && !loading">
-      <v-text-field label="Username" v-model="userName" placeholder="Your Username"/>
-      <v-btn @click="registerAccount()">Register</v-btn>
-    </v-card-text>
-    <v-card-text v-if="hasAccount && !loading && nbRecordsToSync==0">
-      <h1>All Synced Now</h1>
-    </v-card-text>
-    <v-card-actions class="justify-end" v-if="hasAccount && !loading && nbRecordsToSync>0">
-      <v-btn variant="outlined" @click="sync()" >
-        CLICK TO SYNC NOW
-      </v-btn>
-    </v-card-actions>
-  </v-card>
+        </v-card-text>
+        <v-card-text v-if="!hasAccount && !loading">
+          <v-text-field label="Username" v-model="userName" placeholder="Your Username"/>
+          <v-btn @click="registerAccount()">Register</v-btn>
+        </v-card-text>
+        <v-card-text v-if="hasAccount && !loading && nbRecordsToSync==0">
+          <h1>All Synced Now</h1>
+        </v-card-text>
+        <v-card-actions class="justify-end" v-if="hasAccount && !loading && nbRecordsToSync>0">
+          <v-btn variant="outlined" @click="sync()">
+            CLICK TO SYNC NOW
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-col>
 
-  <v-card class="mt-2">
-    <v-card-title>
-      Share Your version
-    </v-card-title>
-    <v-card-text>
-      here is a generated link for you to share with your friends.
-      <br/>
-      <a href="/#/libraryConnect/share">
-        https://datapond.earth/#/core/USERNAME
-      </a>
-    </v-card-text>
-    <v-card-actions class="justify-end">
-      <v-btn>
-        CLICK TO SYNC NOW
-      </v-btn>
-    </v-card-actions>
-  </v-card>
+  </v-row>
 </template>
 
 <style scoped>

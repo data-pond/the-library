@@ -278,18 +278,20 @@ onBeforeRouteLeave((to, from, next) =>{
       <!-- Settings -->
       <v-tabs-window-item :value="0">
         <v-container>
-          <v-row align="center" justify="center">
+          <v-row >
 
-            <v-col cols="12" >
+            <v-col cols="12" md="8">
               <v-card elevation="3" density="compact">
               <v-card-title class="text-primary" >
                 <strong><v-icon icon="mdi-file-document-edit-outline" size="1.5rem"/>  Naming</strong>
               </v-card-title>
               <v-card-text>
-                You can edit the name and description of the topic.
+                Earn reputation by editing the title of this book.
+                <br />
+                <br />
 
                 <label for="InputTitle" >
-                  <strong>Name</strong>
+                  <strong>Title</strong>
                 </label>
                 <v-text-field  tile single-line
                                class="mt-3"
@@ -311,12 +313,13 @@ onBeforeRouteLeave((to, from, next) =>{
             </v-col>
           </v-row>
           <v-row>
-            <v-col cols="12" md="4" bordered class="border-2">
-              <VisibilityAdmin :orm="book" />
-            </v-col>
-            <v-col cols="12" md="8" bordered class="border-2">
+            <v-col cols="12" md="6" bordered class="border-2">
               <DSafeAdmin :orm="book" />
             </v-col>
+            <v-col cols="12" md="6" bordered class="border-2">
+              <VisibilityAdmin :orm="book" class="fill-height" />
+            </v-col>
+
           </v-row>
         </v-container>
       </v-tabs-window-item>

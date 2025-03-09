@@ -19,6 +19,8 @@ const back = () => {
 <template>
   <v-app-bar   elevation="5" >
 
+    <v-container>
+      <v-row>
     <v-btn class="ml-4"
           color="primary" prepend-icon="mdi-arrow-left"
            variant="outlined"  @click="back()">Back </v-btn>
@@ -34,7 +36,8 @@ const back = () => {
     <div class="text-warning text-h6 mr-3">
       <strong>Book Admin</strong>
     </div>
-
+      </v-row>
+    </v-container>
   </v-app-bar>
   <v-main scrollable>
 

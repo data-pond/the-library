@@ -1,18 +1,83 @@
 <script setup lang="ts">
 import Layout from '../Layout.vue'
-import {ref} from 'vue'
+import {onMounted, ref} from 'vue'
 
+import {useCoreConnect, useCoreContract} from "@//ts/core.ts";
+import {useRouter} from "vue-router";
+
+const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone
+
+const router = useRouter();
 const username = ref(null)
+
+const {register, hasAccount, usernameExists} = useCoreContract();
+
+const {coreInstalled, checkMetamaskInstalled, checkNetworkOk}  = useCoreConnect()
 
 const error = ref(null)
 const checkUsername = () => {
-  if (username.value.length <2>) {
-    error.value = "username too short"
-  } else if  (/^([a-z][A-Z])+$/.test(username.value) === false) {
-    error.value = "Only letters allowed"
+  if (username.value) {
+    if (username.value.length <2) {
+      error.value = "username too short"
+    } else if  (/^([a-z])*$/i.test(username.value) === false) {
+      error.value = "Only letters allowed"
+    } else {
+      error.value = null
+    }
   } else {
-    error.value = null
+    error.value = "This field is required"
   }
+
+}
+
+const loading = ref(true);
+const computing = ref(false)
+onMounted(async () => {
+  checkMetamaskInstalled()
+  const ok = await checkNetworkOk()
+  if (!ok) {
+      router.push('/help/installCore_1')
+  } else {
+    hasAccount().then((has) => {
+      if (has) {
+        const isLevelUp = true;
+        if (isLevelUp) {
+          router.push('/wallet/core')
+        } else {
+          router.push('/account')
+        }
+      } else {
+        loading.value = false
+      }
+    })
+  }
+})
+
+
+
+const connect = async () => {
+  computing.value = true
+  checkUsername()
+  if (error.value) {
+    return
+  }
+
+  const ok = await usernameExists(username.value)
+  console.log(ok)
+  if (!ok) {
+    await register(username.value);
+    computing.value = false
+    const isLevelUp = true;
+    if (isLevelUp) {
+      router.push('/wallet/core')
+    } else {
+      router.push('/account')
+    }
+  } else {
+    error.value = "This username is already taken"
+    computing.value = false
+  }
+
 }
 
 const language = window.navigator.language
@@ -46,7 +111,7 @@ const language = window.navigator.language
             </v-col>
             <v-col cols="10" md="8">
 
-              <div>
+              <div v-if="!loading">
                 <strong class="text-primary">
                   Username:
                 </strong>
@@ -75,7 +140,7 @@ const language = window.navigator.language
                       Timezone:
                     </strong>
                     <div>
-                      {{Intl.DateTimeFormat().resolvedOptions().timeZone}}
+                      {{timezone}}
                     </div>
                   </v-col>
                 </v-row>
@@ -84,7 +149,8 @@ const language = window.navigator.language
                 <br />
 
                 <v-btn size="x-large"
-                       @click="checkUsername()"
+                       @click="connect()"
+                       :loading="computing"
                        color="primary" append-icon="mdi-chevron-right">
                   CONNECT
                 </v-btn>
@@ -92,6 +158,9 @@ const language = window.navigator.language
 
                 <br />
 
+              </div>
+              <div v-else class="align-content-center justify-center">
+                <h2>Connecting Account...</h2>
               </div>
             </v-col>
           </v-row>
