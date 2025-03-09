@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/png" href="/icon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-      <script src="/telegram.js"></script>
+<!--      <script src="/telegram.js"></script>-->
 
       <title>The Library</title>
       <meta name="description" content="The Library is Safe for Children, Adults and Plants and contain a large collection of Free books on the topic of ethics and sustainability" />
@@ -23,17 +23,13 @@
           #app-loading.hidden {
               //display: none;
           }
-
           .hide {
               display: none !important;
           }
-
-
-
       </style>
       <script>
           let activeScreen = 0;
-          const maxscreens = 4;
+          const maxscreens = 3;
           let ready = false;
           let autohide = false;
           const updateScreen = () => {
@@ -56,7 +52,7 @@
               } else {
                   updateScreen()
               }
-          },400);
+          },500);
 
           document.appLoaded = () => {
               if (ready) {
@@ -74,22 +70,24 @@
        justify-content: center; align-items: center; height: 100vh;">
 
       <div id="app-loading-screen-0" >
-          <h1 class="my-3">DSafe</h1>
-          <h4>Entering the Library</h4>
+          <h1 class="my-3">The Library</h1>
+          <h4>No account required</h4>
+          <h4>A common good collection</h4>
+          <h4>Vote for your favorite content</h4>
       </div>
       <div id="app-loading-screen-1" class="hide">
           <h1>Focus</h1>
           <h3>Breath and find a comfortable space</h3>
-
+          <h5>A new game from datapond</h5>
       </div>
+<!--      <div id="app-loading-screen-2" class="hide">-->
+<!--          <h1>Web3 connected</h1>-->
+<!--          <h3>This App is fully decentralized</h3>-->
+<!--      </div>-->
+
       <div id="app-loading-screen-2" class="hide">
-          <h1>Web3 connected</h1>
-          <h3>This App is fully decentralized</h3>
-      </div>
-
-      <div id="app-loading-screen-3" class="hide">
-          <h1>FIRST LEVEL</h1>
-          <h3>online and fully operational</h3>
+          <h1>DSafe</h1>
+          <h3>Common Educational Content</h3>
       </div>
 
   </div>

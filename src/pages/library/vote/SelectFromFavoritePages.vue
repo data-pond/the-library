@@ -1,35 +1,30 @@
 <script setup lang="ts">
-
 import Layout from "@//pages/library/help/Layout.vue";
-import {Book, DateUtils, dump, NewVote, Vote} from "@the_library/db";
-
+import {VoteAction, Book, DateUtils, dump, NewVote, Vote} from "@the_library/db";
 import Page from "@//components/page.vue";
 import {useRouter} from "vue-router";
+
 
 const props = defineProps({
   slotId: Number
 })
-
-
-
 const data = dump().get(Vote.type)
-const allVotes = data ? Array.from(data.values()).filter(v => v.name === 'Best Page Vote Contest').map(v => ({
+const allVotes = data ? Array.from(data.values()).filter(v => v.action === VoteAction.FavoritePages).map(v => ({
   vote: v,
-  book: Book.Load(v.targetId)
+  book: Book.Load(v.link1)
 })) : []
-
-
 const router = useRouter();
 
 const select = (vote: {vote: Vote, book: Book}) => {
   const newVote = NewVote();
-  newVote.action = `Attach favorite page to slotId`
-  newVote.targetId = vote.book.id;
+  newVote.action = VoteAction.FavoriteSlotId
+  newVote.link1 = vote.book.id;
   newVote.targetType = Book.type;
   newVote.ts=DateUtils.now()
-  newVote.link1 = vote.vote.extraId
-  newVote.link2 = props.slotId
+  newVote.link2 = parseInt(vote.vote.link2, 10);
+  newVote.link3 = parseInt(props.slotId, 10);
   newVote.confirmed = false;
+  console.log('New Vote Created', newVote)
   router.push(`/vote/confirm/${newVote.id}`)
 }
 
@@ -69,7 +64,7 @@ const select = (vote: {vote: Vote, book: Book}) => {
           <v-card @click="select(vote)" elevation="3">
 
             <v-card-text>
-              <Page :file-id="vote.book.pdf" :page="vote.vote.link1" :ratio="0.7"/>
+              <Page :file-id="vote.book.pdf" :page="vote.vote.link2" :ratio="0.7"/>
             </v-card-text>
             <v-card-actions class="justify-center">
               <v-btn color="primary" size="large" variant="tonal">CLICK TO SELECT</v-btn>

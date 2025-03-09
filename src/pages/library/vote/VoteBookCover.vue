@@ -8,18 +8,18 @@ const props = defineProps({
 </script>
 
 <template>
-  <v-card elevation="3" class="my-2" :to="`/voteBookPage/${bookId}`">
+  <v-card elevation="3" class="my-2" :to="`/voteBookPage/${bookId}`" color="primary">
     <v-card-title>
       Elect Book Cover Vision
     </v-card-title>
     <v-card-text>
-      Participate in @ best page of the Library contest
+      Participate @  the <strong >best page contest</strong>
     </v-card-text>
 
     <v-card-actions class="justify-end">
-      <v-btn color="primary" variant="elevated"
+      <v-btn color="white" variant="elevated"
              prepend-icon="mdi-file-pdf-box">
-        Click to start
+        Click to vote
 
       </v-btn>
     </v-card-actions>

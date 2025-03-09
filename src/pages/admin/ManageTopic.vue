@@ -8,6 +8,7 @@ import BookPreview from "@//components/BookPreview.vue";
 import {useRoute, useRouter} from "vue-router";
 import DSafeAdmin from "@//components/admin/DSafeAdmin.vue";
 import VisibilityAdmin from "@//components/admin/VisibilityAdmin.vue";
+import Page from "@//components/page.vue";
 
 const props = defineProps({
   topicId: Number
@@ -351,59 +352,71 @@ const updateTab = () => {
 </script>
 
 <template>
-  <Layout :type="LayoutType" :title="tag.name">
-    <template v-slot:actions class="pa-0 ma-0">
-      <v-tabs
-          v-model="tab"
-          density="compact"
-          color="primary"
-          align-tabs="title"
-          @click="updateTab"
-      >
-        <v-tab text="Settings" :value="0"></v-tab>
+  <Layout >
 
-        <v-tab text="Topics" :value="1" v-if="LayoutType == 'topics'"></v-tab>
-        <v-tab text="Pro" :value="3" v-if="LayoutType == 'topics'"></v-tab>
+    <v-container>
+<v-row>
+  <v-col cols="12">
+    <h3>{{tag.name}}</h3>
+  </v-col>
 
-        <v-tab text="Books" :value="2" v-if="LayoutType == 'books'"></v-tab>
-
-      </v-tabs>
-    </template>
+</v-row>
+    <v-tabs
+        v-model="tab"
+        color="primary"
+        class="mb-4"
+        align-tabs="align-tabs"
+        @click="updateTab"
+    >
+      <v-tab text="Settings" :value="0"></v-tab>
+      <v-tab text="Topics" :value="1" v-if="LayoutType == 'topics'"></v-tab>
+      <v-tab text="Pro" :value="3" v-if="LayoutType == 'topics'"></v-tab>
+      <v-tab text="Books" :value="2" v-if="LayoutType == 'books'"></v-tab>
+    </v-tabs>
 
     <v-tabs-window v-model="tab">
       <!-- NAMING + DSAFE + Visibility-->
       <v-tabs-window-item :value="0">
         <v-container>
-          <v-row align="center" justify="space-between">
-            <v-col cols="12" md="7">
-              <v-card>
-                <v-card-title>
-                  Naming
+          <v-row>
+            <v-col cols="12" md="7" class="px-0">
+              <v-card elevation="3" density="compact">
+                <v-card-title class="text-primary" >
+                  <strong><v-icon icon="mdi-file-document-edit-outline" size="1.5rem"/>  Naming</strong>
                 </v-card-title>
                 <v-card-text>
-                  <p class="text-info">
                     You can edit the name and description of the topic.
-                  </p>
+
+                  <label for="InputTitle" >
+                    <strong>Name</strong>
+                  </label>
+                  <v-text-field  tile single-line
+                                 class="mt-3"
+                                 density="compact"
+                                 v-model="tag.name" id="InputTitle"></v-text-field>
                 </v-card-text>
-                <v-card-item>
-                  <v-card-title class="bg-white">
-                    <v-text-field v-model="tag.name" label="Title"></v-text-field>
-                  </v-card-title>
-                  <v-card-subtitle class="bg-white">
-                    <v-textarea v-model="tag.description" label="Description"></v-textarea>
-                  </v-card-subtitle>
-                </v-card-item>
+                <v-card-text>
+                  <label for="InputDescription" >
+                    <strong>Description</strong>
+                  </label>
+                  <v-textarea density="compact"
+                              class="mt-3" v-model="tag.description"
+                              id="InputDescription"></v-textarea>
+                </v-card-text>
+
               </v-card>
             </v-col>
             <v-col cols="12" md="5">
-              <v-card>
-                <v-card-title>
-                  Topics
+              <v-card elevation="3">
+                <v-card-title class="text-primary">
+                  <strong><v-icon icon="mdi-book-open-variant-outline" size="1.5rem"/> Topics</strong>
                 </v-card-title>
                 <v-card-text>
                   <p>This is a sub-topic - which belongs to the following main topics</p>
                   <v-list>
-                    <v-list-item v-for="topic in tag.inTags" elevation="3" class="ma-3"
+                    <v-list-item
+                        ripple
+                        v-for="topic in tag.inTags"  class="ma-3"
                                  :to="`/admin/tagAdmin/${topic.id}?tab=1`">
                       <v-list-item-title>
                         {{ topic.name }}
@@ -414,9 +427,10 @@ const updateTab = () => {
                     </v-list-item>
                   </v-list>
                 </v-card-text>
-
-                <v-card-title>
-                  Link more top topics
+              </v-card>
+              <v-card class="mt-6" elevation="3">
+                <v-card-title class="text-primary ">
+                  <strong><v-icon icon="mdi-link-variant" size="1.5rem"/> Link more top topics</strong>
                 </v-card-title>
 
                 <v-card-text>
@@ -427,11 +441,11 @@ const updateTab = () => {
 
               </v-card>
             </v-col>
-            <v-col cols="12" md="7">
-              <DSafeAdmin :orm="tag"/>
+            <v-col cols="12" md="7" class="px-0">
+              <DSafeAdmin :orm="tag" elevation="3" class="px-0"/>
             </v-col>
-            <v-col cols="12" md="5">
-              <VisibilityAdmin :orm="tag"/>
+            <v-col cols="12" md="5" >
+              <VisibilityAdmin :orm="tag" elevation="3" />
             </v-col>
           </v-row>
         </v-container>
@@ -667,6 +681,8 @@ const updateTab = () => {
         </v-container>
       </v-tabs-window-item>
     </v-tabs-window>
+
+    </v-container>
   </Layout>
 </template>
 

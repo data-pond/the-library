@@ -10,15 +10,18 @@
     <v-card-subtitle>
       Safe for Children, Adults and Plants
     </v-card-subtitle>
-    <v-card-text style="min-height: 5rem">
+    <v-card-text style="max-height: 5rem;min-height: 5rem">
       <p>
         Inherits all proprties of <a href="/d-licence" class="text-primary">the D</a>,
         A DSafe Label certifies the media published is <strong>safe for children, adults and plants</strong>
       </p>
     </v-card-text>
-    <v-card-actions class="justify-end">
-      <v-btn  color="primary" size="large"  href="https://datapond.earth/d-safe" target="_blank">
-        learn more
+    <v-card-actions class="justify-start mt-2">
+      <v-btn  to="/d-safe"   color="black"
+             variant="tonal" rounded
+              class="px-4"
+             border   append-icon="mdi-chevron-right">
+        <strong>learn more</strong>
       </v-btn>
     </v-card-actions>
   </v-card>

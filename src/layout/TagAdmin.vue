@@ -7,41 +7,32 @@ const props = defineProps({
   title: String
 })
 
-const dev = import.meta.env.MODE === "development"
 
 </script>
 
 <template>
   <v-app-bar   elevation="5" >
 
+    <v-container>
+      <v-row>
+
+
     <v-btn class="ml-4"
           color="primary" prepend-icon="mdi-arrow-left"
            variant="outlined"   to="/admin">Back</v-btn>
     <v-spacer />
 
-    <p class="text-center pa-0 ma-0">
-    <small class="text-info">TOPIC ADMIN</small>
-    <br />
-    <small><strong>{{props.title}}</strong></small>
-    </p>
+<!--    <template v-slot:extension>-->
+<!--      <slot name="actions"></slot>-->
+<!--    </template>-->
 
-    <v-spacer />
-
-
-<!--    <v-btn color="primary" variant="text" density="compact">text</v-btn>-->
-<!--    <v-btn color="primary" variant="plain" density="compact">plain</v-btn>-->
-
-
-<!--    <v-btn color="primary" variant="elevated" elevation="2" density="compact">elevated</v-btn>-->
-
-
-    <template v-slot:extension>
-      <slot name="actions"></slot>
-    </template>
-
+    <div class="text-warning text-h6 mr-3">
+      <strong>Topic Admin</strong>
+    </div>
+      </v-row>
+    </v-container>
   </v-app-bar>
   <v-main scrollable>
-
     <slot></slot>
   </v-main>
 </template>

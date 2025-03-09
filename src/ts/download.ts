@@ -1,7 +1,7 @@
-import {type Book, getFileStatus, loadFile, MimeTypes} from "@the_library/db";
+import {ActivityAction, type Book, getFileStatus, loadFile, MimeTypes} from "@the_library/db";
 import {ref} from "vue";
 import {type RouteLocation, useRoute} from "vue-router";
-import {ActivityAction, registerActivityWithRoute} from "@//ts/activity.ts";
+import { registerNewActivity} from "@//ts/activity.ts";
 
 export const useDownload = (book: Book, route: RouteLocation) => {
     const status = getFileStatus(book.pdf)
@@ -17,7 +17,7 @@ export const useDownload = (book: Book, route: RouteLocation) => {
             a.click();
             document.body.removeChild(a);
             downloading.value = false;
-            registerActivityWithRoute(ActivityAction.LibraryDownload, route)
+            registerNewActivity(ActivityAction.DownloadPdf, book.id)
         })
     }
 

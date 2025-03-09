@@ -1,5 +1,5 @@
 export const TronConfig = {
-    contractId: 'TBwAwYByqBJaH2uDyx9qko8anGxoNhboiZ'
+    contractId: 'TMgkEq21VXQTD5PvpEmsuoVN5T1LYmsiPA'
 };
 
 /**

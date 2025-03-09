@@ -54,9 +54,6 @@ watchEffect(() => {
   }
 })
 
-const activateVoteCover = () => {
-
-}
 
 </script>
 
@@ -72,7 +69,9 @@ const activateVoteCover = () => {
           </v-card-title>
 
           <v-card-text v-if="book.nbPages>=CoverApi.max">
-            Previewing the first 14 pages.This book has {{book.nbPages}} pages.
+           This book has {{book.nbPages}} pages.
+            <br />
+            Previewing the first {{CoverApi.max> book.nbPages ? book.nbPages : CoverApi.max}} pages.
           </v-card-text>
           <v-card-actions class="justify-end">
             <v-btn>Click on any page to open it</v-btn>

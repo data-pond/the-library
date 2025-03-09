@@ -4,6 +4,7 @@
   "description": "The Library",
   "type": "module",
   "devDependencies": {
+    "@ethersproject/providers": "^5.8.0",
     "@mdi/font": "^7.4.47",
     "@mdi/js": "^7.4.47",
     "@permaweb/aoconnect": "^0.0.75",
@@ -12,6 +13,7 @@
     "@vue/tsconfig": "^0.7.0",
     "arweave": "^1.15.5",
     "ethers": "^6.13.5",
+    "netlify-cli": "^19.0.2",
     "sass-embedded": "^1.83.4",
     "typescript": "~5.6.2",
     "vite": "^6.0.5",
@@ -19,7 +21,7 @@
     "vue-tsc": "^2.2.0"
   },
   "dependencies": {
-    "@the_library/db": "0.1.1",
+    "@the_library/db": "*",
     "@vueuse/core": "^12.7.0",
     "netlify": "^13.3.3",
     "vite-plugin-vuetify": "^2.0.4",

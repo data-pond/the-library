@@ -72,20 +72,20 @@ const openTopic = (topic) => {
 
 
 <!--    <FileUploadStatus />-->
-    <TagCoverUploader v-if="topLevels.length>0" :tagId="selectedTag" />
+<!--    <TagCoverUploader v-if="topLevels.length>0" :tagId="selectedTag" />-->
     <v-container fluid>
-    <v-row class="bg-grey-lighten-3">
+    <v-row>
       <v-col v-for="tag in topLevels"  cols="12" md="6" lg="4" xl="3"  align-self="end" >
-        <v-card elevation="3" border @click="openTopic(tag)">
-          <v-card-item>
+        <v-card elevation="1"
+                variant="flat"
+                @click="openTopic(tag)" color="white" class="clickable">
+
             <v-card-title  class="bg-white">
               {{tag.name}}
-
             </v-card-title>
-            <v-card-subtitle  class="bg-white">
+            <v-card-text  class="bg-white text-grey-darken-3">
               {{tag.description}}
-            </v-card-subtitle>
-          </v-card-item>
+            </v-card-text>
 <!--          <v-card-text  class="bg-white">-->
 <!--            <Image :fileId="tag.coverImage" />-->
 <!--            <v-btn @click="selectTag(tag)" color="primary"  tile elevation="3" border>-->
@@ -94,19 +94,17 @@ const openTopic = (topic) => {
 <!--          </v-card-text>-->
           <v-card-text class="bg-white pa-2 " >
 
-
-
-            <v-btn v-if="tag.tags.length>0" color="primary"
-                   variant="outlined"
-                   elevation="3" border   prepend-icon="mdi-folder-arrow-right">
-               {{tag.tags.length}} sub topics
+            <v-btn v-if="tag.tags.length>0" color="black"
+                   variant="tonal" rounded
+                    border   append-icon="mdi-chevron-right">
+               <strong>{{tag.tags.length}} sub topics</strong>
             </v-btn>
 
-            <v-btn v-if="tag.books.length>0" color="secondary"
-                   variant="outlined" elevation="3" border
-                   prepend-icon="mdi-file-document-multiple-outline"
+            <v-btn v-if="tag.books.length>0" color="primary-darken-2"
+                   variant="tonal" rounded border
+                   append-icon="mdi-chevron-right"
                    class="ml-2">
-               {{tag.books.length}} Books
+              <strong>{{tag.books.length}} Books</strong>
             </v-btn>
 
           </v-card-text>
@@ -116,4 +114,12 @@ const openTopic = (topic) => {
     </v-container>
   </AppLayout>
 </template>
+
+<style scoped lang="scss">
+.clickable {
+  &:hover {
+    background-color: #fff !important;
+  }
+}
+</style>
 

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 
 import {Book, DSafeFilter, DSafeGenericFilter, Tag} from "@the_library/db";
-import {computed, onMounted} from "vue";
+import {computed} from "vue";
 import {addTopicNavigation} from "@//ts/navigation.ts";
 
 const props = defineProps({
@@ -52,31 +52,46 @@ const getTopicUrl = (tag: Tag) => {
              :key="topic.id">
         <v-card :to="getTopicUrl(topic)"
                 @click="addTopicNavigation(props.parentId, topic.id)"
-                variant="elevated"
-                hover
+                variant="flat"
+                elevation="2"
+                color="white"
                 min-height="13rem">
-          <v-card-title class="text-primary">
-
-
+          <v-card-title class="bg-white">
              {{ topic.name }}
-
           </v-card-title>
-          <v-card-text style="min-height: 5.5rem">
-            <p class="text-subtitle-1">
+          <v-card-text   class="bg-white text-grey-darken-3" style="min-height: 5rem;max-height: 5rem;overflow: hidden;">
+            <p class="text-subtitle-1" v-if="topic.description.length>0">
               {{ topic.description }}
             </p>
+            <p v-else>
+              no description available yet.
+              <br />
+              <small>Add a description in the CONTRIBUTOR MODE.</small>
+            </p>
           </v-card-text>
-          <v-card-text v-if="totalTopics(topic) >0">
-            {{ totalBooks(topic) }} books and {{ totalTopics(topic) }} topics.
-          </v-card-text>
-          <v-card-text v-else>
-            {{ totalBooks(topic) }} books
-          </v-card-text>
-          <v-card-actions class="justify-end">
-            <v-btn color="primary">
-              click to visit
+          <v-card-actions v-if="totalTopics(topic) >0" class="justify-space-between mt-2">
+            <v-btn color="primary-darken-2"
+                   variant="tonal" rounded border
+                   append-icon="mdi-chevron-right"
+                   class="ml-2 px-4">
+              <strong>{{ totalBooks(topic) }} books</strong>
+            </v-btn>
+            <v-btn color="black"
+                   class="mr-2 px-4"
+                   variant="tonal" rounded
+                   border   append-icon="mdi-chevron-right">
+              <strong>{{ totalTopics(topic) }} topics</strong>
             </v-btn>
           </v-card-actions>
+          <v-card-actions v-else>
+            <v-btn color="black"
+                   variant="tonal" rounded border
+                   append-icon="mdi-chevron-right"
+                   class="ml-2 px-4">
+            {{ totalBooks(topic) }} books
+            </v-btn>
+          </v-card-actions>
+
           <!--          <Image :file-id="topic.coverImage" />-->
         </v-card>
       </v-col>

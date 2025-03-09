@@ -23,12 +23,7 @@ const back = () => {
           color="primary" prepend-icon="mdi-arrow-left"
            variant="outlined"  @click="back()">Back </v-btn>
     <v-spacer />
-    <p class="text-center pa-0 ma-0">
-      <small class="text-info">BOOK ADMIN</small>
-      <br />
-      <small><strong>{{props.title}}</strong></small>
-    </p>
-    <v-spacer />
+
 
 <!--    <v-btn color="primary" variant="text" density="compact">text</v-btn>-->
 <!--    <v-btn color="primary" variant="plain" density="compact">plain</v-btn>-->
@@ -36,10 +31,9 @@ const back = () => {
 
 <!--    <v-btn color="primary" variant="elevated" elevation="2" density="compact">elevated</v-btn>-->
 
-    <template v-slot:extension>
-      <slot name="actions"></slot>
-
-    </template>
+    <div class="text-warning text-h6 mr-3">
+      <strong>Book Admin</strong>
+    </div>
 
   </v-app-bar>
   <v-main scrollable>

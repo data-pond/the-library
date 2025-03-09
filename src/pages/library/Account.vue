@@ -1,164 +1,248 @@
 <script setup lang="ts">
 
 import Layout from "@//pages/library/Layout.vue";
-import {Book, GetAllActivities, Tag} from "@the_library/db";
-import {ref} from "vue";
-import {Activity} from "@the_library/db";
-import {ActivityAction} from "@//ts/activity.ts";
+import {hasStartedBestBookCoverContest} from "@//ts/vote.ts";
+import {getAllPatches, loadSyncedData} from "@the_library/db";
+import {ref} from 'vue'
+import {getAllPatchesSince, getNbPatches} from "@the_library/db";
+import {Web3Provider} from "@ethersproject/providers";
 
-const loaded = ref(false)
-const myTopics = ref([])
-const myBooks = ref([])
-const mySuggestions = ref([])
-GetAllActivities().then(data => {
+const bookCoverLink = hasStartedBestBookCoverContest() ? `/vote/bestCovers` : '/help/voteBestCover'
 
-  console.log(data)
-  const list = data.map(value => {
-    return new Activity(value)
-  }, {})
+const currentLevel = ref(null)
+const progress = ref(0)
+const computingLevel = ref(true)
+const levelUp = ref(false)
+const coreInstalled = ref(false)
+const metaMaskInstalled = ref(false)
+const resumeInstall = ref(false)
 
-  const index = list.reduce((acc, activity: Activity) => {
-    if (![ActivityAction.LibraryDownload, ActivityAction.LibraryTopic, ActivityAction.LibraryRead].includes(activity.action)) {
-      return acc
-    }
-    if (typeof acc[activity.action] === 'undefined') {
-      acc[activity.action] = {}
-    }
-    if (typeof acc[activity.action][activity.objectId] === 'undefined') {
-      acc[activity.action][activity.objectId] = []
-    }
-    acc[activity.action][activity.objectId].push(activity.activityTs)
-    return acc;
-  }, {
-    [ActivityAction.LibraryTopic]: {},
-    [ActivityAction.LibraryRead]: {},
-    [ActivityAction.LibraryDownload]: {},
-  });
+if (window.ethereum) {
+  metaMaskInstalled.value = true
+  const provider = new Web3Provider(window.ethereum); // Updated to Web3Provider
+  provider.send("eth_requestAccounts", []).then(() => {
+    coreInstalled.value = true;
+  }).catch((e) => {
+    console.error(e)
+  })
 
-  myTopics.value = Object.keys(index[ActivityAction.LibraryTopic]).map(key => {
-    const id = parseInt(key, 10)
-    return {
-      tag: Tag.Load(id),
-      score: index[ActivityAction.LibraryTopic][key].length,
-    }
-  }).sort((a, b) => b.score - a.score)
-
-  myBooks.value = Object.keys(index[ActivityAction.LibraryDownload]).map(key => {
-    const id = parseInt(key, 10)
-    return {
-      book: Book.Load(id),
-      score: index[ActivityAction.LibraryDownload][key].length,
-    }
-  }).sort((a, b) => b.score - a.score);
-
-  mySuggestions.value = Object.keys(index[ActivityAction.LibraryRead]).map(key => {
-    const id = parseInt(key, 10)
-    return {
-      book: Book.Load(id),
-      score: index[ActivityAction.LibraryRead][key].length,
-    }
-  }).sort((a, b) => b.score - a.score);
-  loaded.value = true
-});
-
-
-const topicLink = (topic: Tag) => {
-  if (topic.booksIds.length >0) {
-    return `/bookList/${topic.id}`
-  } else {
-    return `/topic/${topic.id}`
-  }
 }
+
+
+getAllPatches().then(async (patches) => {
+
+  const syncedData = await loadSyncedData();
+  console.log(syncedData);
+  console.log('syncedData', syncedData.syncCounter.activity.btc,
+      syncedData.syncCounter.patch.btc);
+
+  const pendingPatches = await getAllPatchesSince(syncedData.syncCounter.patch.btc);
+  const nbPendingPatches = Object.values(patches).reduce((acc, value) => {
+    return acc + Object.keys(value).length
+  }, 0)
+
+
+  levelUp.value = nbPendingPatches >= 10;
+
+  currentLevel.value = Math.ceil(nbPendingPatches / 10);
+
+  progress.value = 10 * (nbPendingPatches % 10)
+
+  computingLevel.value = false
+})
 </script>
 
 <template>
 
   <Layout>
-    <v-container fluid>
-
-
-      <div v-if="loaded">
-
+    <v-container>
+      <div>
         <v-row>
-          <v-col cols="12" md="4">
-            <v-card>
+          <v-col cols="12" v-if="!metaMaskInstalled">
+            <v-card elevation="3" class="fill-height"
+                    rounded
+
+                    to="/help/installCore_1"
+                    color="primary" style="min-height:15rem">
+              <v-card-item class="align-content-center fill-height">
+                <v-row align-content="center">
+                  <v-col cols="3" md="2">
+                    <v-img src="/img/core_logo.svg" :ratio="1"></v-img>
+                  </v-col>
+                  <v-col cols="9" md="8">
+                    <h1>Install CORE to enable community voting !</h1>
+
+                    <p>
+                      Unlock community features, track your progress, and vote on your favorite books.
+                    </p>
+                    <p>
+                      Join thousands of users already enjoying enhanced features.
+                    </p>
+
+                    <br/>
+                    <v-btn color="white" prepend-icon="mdi-download" append-icon="mdi-chevron-right">
+                      Install Now
+                    </v-btn>
+                  </v-col>
+                </v-row>
+              </v-card-item>
+            </v-card>
+          </v-col>
+
+
+          <v-col cols="12" md="6">
+            <v-card elevation="3">
               <v-card-title>
-                Suggestions
+                Level {{ currentLevel }}
+              </v-card-title>
+              <v-card-text style="max-height: 7rem;min-height: 7rem">
+                <p>Progress until next level</p>
+                <br/>
+                <v-progress-linear
+                    color="primary"
+                    height="20"
+                    :model-value="progress"
+                    striped
+                ></v-progress-linear>
+                <br/>
+                <p>
+                  {{ progress.toFixed(0) }}% complete. Keep going!
+                </p>
+              </v-card-text>
+            </v-card>
+          </v-col>
+          <v-col cols="12" md="6" v-if="!levelUp">
+            <v-card elevation="3" class="fill-height">
+              <v-card-title>
+                Level Up
               </v-card-title>
               <v-card-subtitle>
-                You have visited these books in the past.
+                Sync your data on CORE
               </v-card-subtitle>
               <v-card-text>
-                <v-list v-if="mySuggestions.length>0">
-                  <v-list-item v-for="suggestion in mySuggestions"
-
-                               rounded="shaped"
-                               :to="`/read/${suggestion.book.id}`">
-                    <v-list-item-title>
-                      {{ suggestion.book.name }}
-                    </v-list-item-title>
-                    <v-list-item-subtitle>
-                      {{ suggestion.score }} visits
-                    </v-list-item-subtitle>
-                  </v-list-item>
-                </v-list>
-                <div v-else class="text-primary">
-                  No Suggestions yet
-                </div>
+                When reaching next level , you'll be able to use CORE to vote.
               </v-card-text>
             </v-card>
           </v-col>
-          <v-col cols="12" md="4">
-            <v-card>
-              <v-card-title>Downloaded Books</v-card-title>
-
-              <v-card-subtitle>Those books are already downlaoded on your device</v-card-subtitle>
+          <v-col cols="12" md="6" v-else>
+            <v-card elevation="3" color="yellow" class="fill-height">
+              <v-card-title>
+                Level Up
+              </v-card-title>
+              <v-card-subtitle>
+                Sync your data on CORE
+              </v-card-subtitle>
               <v-card-text>
-                <v-list v-if="myBooks.length>0">
-                  <v-list-item v-for="book in myBooks" rounded="shaped">
-                    <v-list-item-title>
-                      {{ book.book.name }}
-                    </v-list-item-title>
-                    <v-list-item-subtitle>
-                      {{ book.score }} visits
-                    </v-list-item-subtitle>
-                  </v-list-item>
-                </v-list>
-                <div v-else class="text-primary">
-                  No Books downloaded yet
-                </div>
+                When reaching next level , you'll be able to use CORE to vote.
               </v-card-text>
-            </v-card>
-          </v-col>
-          <v-col cols="12" md="4">
-            <v-card>
-              <v-card-title>Favorite Topics</v-card-title>
-
-              <v-card-subtitle>Those are the topics you most often visit</v-card-subtitle>
-              <v-card-text>
-
-                <v-list v-if="myTopics.length>0">
-                  <v-list-item v-for="topic in myTopics" rounded="shaped"
-                               :to="topicLink(topic.tag)">
-                    <v-list-item-title>
-                      {{ topic.tag.name }}
-                    </v-list-item-title>
-                    <v-list-item-subtitle>
-                      {{ topic.score }} visits
-                    </v-list-item-subtitle>
-                  </v-list-item>
-                </v-list>
-                <div v-else class="text-primary">
-                  No Topics visited yet
-                </div>
-              </v-card-text>
+              <v-card-actions>
+                <v-btn size="large">
+                  Vote Now !
+                </v-btn>
+              </v-card-actions>
             </v-card>
           </v-col>
         </v-row>
+        <v-row>
 
+          <v-col cols="12" v-if="metaMaskInstalled && !coreInstalled">
+            <v-card elevation="3" class="fill-height" color="black" style="min-height:15rem">
+              <v-card-text style="min-height: 5rem">
+                <h1>Enable CORE to enable community voting !</h1>
+                <h3>Core supports Metamask, to connect CORE to your metamask wallet, click here.</h3>
+              </v-card-text>
+            </v-card>
+          </v-col>
+          <v-col cols="12" md="6">
+            <v-card color="primary" class="fill-height" :to="bookCoverLink">
+              <v-card-title>
+                Book Cover Contest
+              </v-card-title>
+
+              <v-card-text>
+                Vote for the best pages of the Library !
+              </v-card-text>
+              <v-card-actions class="bg-white">
+                <v-btn color="primary"
+                       variant="elevated" rounded
+                       class="px-4"
+                       border append-icon="mdi-chevron-right">
+                  <strong>Vote Now</strong>
+                </v-btn>
+              </v-card-actions>
+            </v-card>
+          </v-col>
+
+          <v-col cols="12">
+
+
+            <v-card>
+              <v-card-title>
+                My Library
+              </v-card-title>
+              <v-card-item>
+                <v-row>
+
+                  <v-col cols="12" md="4">
+                    <v-card to="/account/visitedBooks" class="pa-2 fill-height">
+                      <v-card-title>
+                        Visited Books
+                      </v-card-title>
+                      <v-card-text>
+                        Click to see all the book you have already visited.
+                      </v-card-text>
+                      <v-card-actions>
+                        <v-btn color="black"
+                               variant="tonal" rounded
+                               class="px-4"
+                               border append-icon="mdi-chevron-right">
+                          <strong>GO</strong>
+                        </v-btn>
+                      </v-card-actions>
+                    </v-card>
+                  </v-col>
+                  <v-col cols="12" md="4">
+                    <v-card to="/account/downloadedBooks" class="pa-2 fill-height">
+                      <v-card-title>
+                        Downloaded Books
+                      </v-card-title>
+                      <v-card-text>
+                        Click to see all the book you have downloaded.
+                      </v-card-text>
+                      <v-card-actions>
+                        <v-btn color="black"
+                               variant="tonal" rounded
+                               class="px-4"
+                               border append-icon="mdi-chevron-right">
+                          <strong>GO</strong>
+                        </v-btn>
+                      </v-card-actions>
+                    </v-card>
+                  </v-col>
+                  <v-col cols="12" md="4">
+                    <v-card to="/account/favoriteTopics" class="pa-2 fill-height">
+                      <v-card-title>
+                        Favorite Topics
+                      </v-card-title>
+                      <v-card-text>
+                        A list of your Favorite topics - and their voting score.
+                      </v-card-text>
+                      <v-card-actions>
+                        <v-btn color="black"
+                               variant="tonal" rounded
+                               class="px-4"
+                               border append-icon="mdi-chevron-right">
+                          <strong>GO</strong>
+                        </v-btn>
+                      </v-card-actions>
+                    </v-card>
+                  </v-col>
+                </v-row>
+              </v-card-item>
+            </v-card>
+          </v-col>
+        </v-row>
       </div>
-
-
     </v-container>
   </Layout>
 </template>

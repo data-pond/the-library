@@ -10,13 +10,17 @@
     <v-card-subtitle>
       Creative Common + Crypto Storage
     </v-card-subtitle>
-    <v-card-text style="min-height: 5rem">
+    <v-card-text  style="max-height: 5rem;min-height: 5rem">
       <p>The best Licence</p>
       <p>A solid foundation to build durable public domain.</p>
     </v-card-text>
-    <v-card-actions class="justify-end">
-      <v-btn  color="primary" size="large" to="/d-licence" >
-        Learn more
+    <v-card-actions class="justify-start">
+        <v-btn  to="/d-licence"   color="black"
+                variant="tonal" rounded
+                class="px-4"
+                border   append-icon="mdi-chevron-right">
+
+          <strong>Learn more</strong>
       </v-btn>
     </v-card-actions>
   </v-card>

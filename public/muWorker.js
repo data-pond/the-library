@@ -1,26 +1,7 @@
-var __create = Object.create;
+'use strict';
+
 var __defProp = Object.defineProperty;
-var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
-var __getOwnPropNames = Object.getOwnPropertyNames;
-var __getProtoOf = Object.getPrototypeOf;
-var __hasOwnProp = Object.prototype.hasOwnProperty;
 var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
-var __copyProps = (to, from, except, desc) => {
-  if (from && typeof from === "object" || typeof from === "function") {
-    for (let key of __getOwnPropNames(from))
-      if (!__hasOwnProp.call(to, key) && key !== except)
-        __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
-  }
-  return to;
-};
-var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__getProtoOf(mod)) : {}, __copyProps(
-  // If the importer is in node compatibility mode or this is not an ESM
-  // file that has been converted to a CommonJS file using a Babel-
-  // compatible transform (i.e. "__esModule" has not been set), then set
-  // "default" to the CommonJS "module.exports" for node compatibility.
-  isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target,
-  mod
-));
 var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
 
 // src/utils/promises.ts
@@ -51,67 +32,8 @@ var proResolver = () => {
   return { pro, resolve, reject, start, isStarted };
 };
 
-// src/utils/dates.ts
-var DateUtils = {
-  now: () => Math.floor(Date.now() / 1e3),
-  toNumber: (d) => Math.floor(d.getTime() / 1e3),
-  fromNumber: (i) => new Date(i * 1e3)
-};
-
-// src/utils/gzip.ts
-var compress = async (blob) => {
-  if (typeof CompressionStream === "undefined") {
-    import("zlib").then(
-      async ({ gzipSync }) => {
-        console.log(`Node environment, using gunzipSync`);
-        const bytes = await blob.bytes();
-        return gzipSync(bytes);
-      }
-    ).catch((e) => {
-      console.error(e);
-      throw new Error(`CompressionStream is not defined - and node zlib is not defined`);
-    });
-  }
-  const stream = blob.stream();
-  const compressedStream = stream.pipeThrough(
-    new CompressionStream("gzip")
-  );
-  const ok = new Response(compressedStream);
-  return new Uint8Array(await ok.arrayBuffer());
-};
-var isGzip = (buf) => {
-  if (!buf || buf.byteLength < 3) {
-    return false;
-  }
-  return buf[0] === 31 && buf[1] === 139 && buf[2] === 8;
-};
-var decompress = async (compressedBytes) => {
-  if (!isGzip(compressedBytes)) {
-    console.warn(`not a compressed file - ignoring decompression`);
-    return compressedBytes;
-  }
-  if (typeof DecompressionStream === "undefined") {
-    import("zlib").then(
-      ({ gunzipSync }) => {
-        console.log(`Node environment, using gunzipSync`);
-        return gunzipSync(compressedBytes);
-      }
-    ).catch((e) => {
-      console.error(e);
-      throw new Error(`CompressionStream is not defined - and node zlib is not defined`);
-    });
-  }
-  const stream = new Blob([compressedBytes]).stream();
-  const decompressedStream = stream.pipeThrough(
-    new DecompressionStream("gzip")
-  );
-  const ok = new Response(decompressedStream);
-  const buff = await ok.arrayBuffer();
-  return new Uint8Array(buff);
-};
-
 // src/engine/idb/common.ts
-var version = 5;
+var version = 8;
 var dbName = `datapond_storage`;
 var dbDeferred = proResolver();
 var patchStoreName = `patches`;
@@ -140,17 +62,27 @@ var Db = () => {
   }
   dbDeferred.start();
   const request = indexedDB.open(dbName, version);
-  request.onupgradeneeded = function() {
+  request.onupgradeneeded = function(event) {
     const db = request.result;
-    db.createObjectStore(jsonStoreName, { keyPath: "id" });
-    db.createObjectStore(pdfStoreName, { keyPath: "id" });
-    db.createObjectStore(previewStoreName, { keyPath: "id" });
-    db.createObjectStore(patchStoreName, { autoIncrement: true });
-    db.createObjectStore(keyValStoreName, { keyPath: "key" });
-    db.createObjectStore(pdfDataStoreName, { keyPath: "fileId" });
-    const pdfStore = db.createObjectStore(pdfPagesStoreName, { keyPath: ["fileId", "page"] });
-    pdfStore.createIndex("fileId", "fileId", { unique: false });
-    db.createObjectStore(activityStoreName, { autoIncrement: true });
+    if (!db.objectStoreNames.contains(jsonStoreName)) {
+      db.createObjectStore(jsonStoreName, { keyPath: "id" });
+      db.createObjectStore(pdfStoreName, { keyPath: "id" });
+      db.createObjectStore(previewStoreName, { keyPath: "id" });
+      db.createObjectStore(patchStoreName, { autoIncrement: true });
+      db.createObjectStore(keyValStoreName, { keyPath: "key" });
+      db.createObjectStore(pdfDataStoreName, { keyPath: "fileId" });
+      const pdfStore = db.createObjectStore(pdfPagesStoreName, { keyPath: ["fileId", "page"] });
+      pdfStore.createIndex("fileId", "fileId", { unique: false });
+      db.createObjectStore(activityStoreName, { autoIncrement: true });
+    } else {
+      const txn1 = event.target.transaction;
+      txn1.objectStore(patchStoreName).clear();
+      const txn2 = event.target.transaction;
+      txn2.objectStore(keyValStoreName).clear();
+      const txn3 = event.target.transaction;
+      txn3.objectStore(activityStoreName).clear();
+      console.log("DB UPGRADED - removed all patches");
+    }
   };
   request.onerror = function(event) {
     dbDeferred.reject(event);
@@ -226,6 +158,58 @@ var storeBookData = (record) => {
     };
   }).catch(deferred.reject);
   return deferred.pro;
+};
+
+// src/utils/gzip.ts
+var compress = async (blob) => {
+  if (typeof CompressionStream === "undefined") {
+    import('zlib').then(
+      async ({ gzipSync }) => {
+        console.log(`Node environment, using gunzipSync`);
+        const bytes = await blob.bytes();
+        return gzipSync(bytes);
+      }
+    ).catch((e) => {
+      console.error(e);
+      throw new Error(`CompressionStream is not defined - and node zlib is not defined`);
+    });
+  }
+  const stream = blob.stream();
+  const compressedStream = stream.pipeThrough(
+    new CompressionStream("gzip")
+  );
+  const ok = new Response(compressedStream);
+  return new Uint8Array(await ok.arrayBuffer());
+};
+var isGzip = (buf) => {
+  if (!buf || buf.byteLength < 3) {
+    return false;
+  }
+  return buf[0] === 31 && buf[1] === 139 && buf[2] === 8;
+};
+var decompress = async (compressedBytes) => {
+  if (!isGzip(compressedBytes)) {
+    console.warn(`not a compressed file - ignoring decompression`);
+    return compressedBytes;
+  }
+  if (typeof DecompressionStream === "undefined") {
+    import('zlib').then(
+      ({ gunzipSync }) => {
+        console.log(`Node environment, using gunzipSync`);
+        return gunzipSync(compressedBytes);
+      }
+    ).catch((e) => {
+      console.error(e);
+      throw new Error(`CompressionStream is not defined - and node zlib is not defined`);
+    });
+  }
+  const stream = new Blob([compressedBytes]).stream();
+  const decompressedStream = stream.pipeThrough(
+    new DecompressionStream("gzip")
+  );
+  const ok = new Response(decompressedStream);
+  const buff = await ok.arrayBuffer();
+  return new Uint8Array(buff);
 };
 
 // src/engine/idb/book_storage.ts
@@ -540,6 +524,13 @@ var download = async (id) => {
   }
 };
 
+// src/utils/dates.ts
+var DateUtils = {
+  now: () => Math.floor(Date.now() / 1e3),
+  toNumber: (d) => Math.floor(d.getTime() / 1e3),
+  fromNumber: (i) => new Date(i * 1e3)
+};
+
 // src/utils/muManagerIS.ts
 globalThis.__filename = "./lib/mupdf-wasm.js";
 importScripts("./lib/mupdf-wasm.js");
@@ -612,7 +603,7 @@ var MuManagerIS = class {
       if (from > to) {
         throw new Error(`page from>to ${from} > ${to}`);
       }
-      for (let i = from; i < to; i++) {
+      for (let i = from; i <= to; i++) {
         if (bookData.dimensions[i] === null) {
           console.log(`processing book page ${i} for ${fileId}`);
           try {
@@ -641,7 +632,6 @@ var MuManagerIS = class {
             console.error(`error processing page ${i}`, e);
             this.thread.postEvent("muPageError" /* MuPageError */, { e, fileId, page: i });
           }
-        } else {
         }
       }
     } catch (e) {

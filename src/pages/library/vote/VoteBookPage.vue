@@ -2,12 +2,12 @@
 
 import Layout from "@//pages/library/Layout.vue";
 import {computed, ref} from "vue";
-import {Book, DateUtils} from "@the_library/db";
+import {Book, DateUtils, VoteAction} from "@the_library/db";
 import Page from "@//components/page.vue";
 import {useAccessBook} from "@//ts/book.ts";
 import {NewVote, Vote} from "@the_library/db";
 import {useRoute, useRouter} from "vue-router";
-import {VoteAction} from "@//ts/vote.ts";
+
 
 const props = defineProps({
   bookId: Number
@@ -40,14 +40,13 @@ const router = useRouter()
 
 const newVote = () => {
   const vote: Vote = NewVote();
-  vote.name = VoteAction.FavoritePages
-  vote.description =  `page ${pageNumber.value} -- ${book.value.name}`
   vote.ts = DateUtils.now()
-  vote.targetId = book.value.id
-  vote.targetType = Book.type
+  vote.link1 = book.value.id
   vote.action = VoteAction.FavoritePages
-  vote.link1 = pageNumber.value
+  vote.link2 = parseInt(pageNumber.value, 10);
+  vote.link3 = -1;
   vote.confirmed = false;
+  console.log('New Vote: ', vote)
   return vote
 }
 
@@ -56,7 +55,7 @@ const confirmVote = (p: number) => {
     pageNumber.value = p
     step.value = 2
 
-    const vote: Vote = newVote()
+    newVote();
     router.push(`/vote/bestCovers`)
     return
   }
@@ -165,18 +164,7 @@ const setPage = () => {
             <v-btn class="primary" variant="outlined" size="large" @click="setPage">
               Vote NOW
             </v-btn>
-              <v-btn  color="red" size="large" variant="outlined">click to Download PDF</v-btn>
-<!--            <v-col cols="12" md="6" align-self="center">-->
-<!--<v-row>-->
-<!--  <v-col>-->
-<!--    <v-label>Page Number</v-label>-->
-<!--    <v-text-field label="0-150" style="width:6rem" v-model="pageNumber" />-->
-<!--  </v-col>-->
-<!--  <v-col class="align-content-center justify-start">-->
-<!--    <v-btn color="primary" :disabled="true" variant="elevated" size="x-large">Next</v-btn>-->
-<!--  </v-col>-->
-<!--</v-row>-->
-
+            <v-btn  color="red" size="large" variant="outlined">click to Download PDF</v-btn>
           </v-card-actions>
         </v-card>
 

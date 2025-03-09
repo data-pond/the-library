@@ -255,7 +255,13 @@ onBeforeRouteLeave((to, from, next) =>{
 
 <template>
   <Layout :title="book.name" v-model="tab">
-    <template v-slot:actions>
+    <v-container>
+      <v-row>
+        <v-col cols="12">
+          <h3>{{book.name}}</h3>
+        </v-col>
+
+      </v-row>
       <v-tabs
           v-model="tab"
           color="primary"
@@ -266,8 +272,7 @@ onBeforeRouteLeave((to, from, next) =>{
         <v-tab text="Preview" :value="1"></v-tab>
         <v-tab text="Topic" :value="2"></v-tab>
       </v-tabs>
-
-    </template>
+    </v-container>
     <v-tabs-window v-model="tab">
 
       <!-- Settings -->
@@ -276,26 +281,33 @@ onBeforeRouteLeave((to, from, next) =>{
           <v-row align="center" justify="center">
 
             <v-col cols="12" >
-              <v-card>
-                <v-card-title>
-                  Naming
-                </v-card-title>
-                <v-card-text>
-                  <p class="text-primary">
-                    You can edit the title of the book.
-                  </p>
-                </v-card-text>
-                <v-card-item>
-                  <v-card-title class="bg-white">
-                    <v-text-field v-model="book.name" label="Title"></v-text-field>
-                  </v-card-title>
-                </v-card-item>
+              <v-card elevation="3" density="compact">
+              <v-card-title class="text-primary" >
+                <strong><v-icon icon="mdi-file-document-edit-outline" size="1.5rem"/>  Naming</strong>
+              </v-card-title>
+              <v-card-text>
+                You can edit the name and description of the topic.
 
-                <v-card-text>
+                <label for="InputTitle" >
+                  <strong>Name</strong>
+                </label>
+                <v-text-field  tile single-line
+                               class="mt-3"
+                               density="compact"
+                               v-model="book.name" id="InputTitle"></v-text-field>
+              </v-card-text>
+<!--              <v-card-text>-->
+<!--                <label for="InputDescription" >-->
+<!--                  <strong>Description</strong>-->
+<!--                </label>-->
+<!--                <v-textarea density="compact"-->
+<!--                            class="mt-3" v-model="book.description"-->
+<!--                            id="InputDescription"></v-textarea>-->
+<!--              </v-card-text>-->
 
-
-                </v-card-text>
               </v-card>
+
+
             </v-col>
           </v-row>
           <v-row>

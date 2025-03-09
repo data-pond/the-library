@@ -1,27 +1,22 @@
 <script setup lang="ts">
-import {Book, dump, Vote} from "@the_library/db";
+import {Book} from "@the_library/db";
 import Page from "@//components/page.vue";
-import {VoteAction} from "@//ts/vote.ts";
+import {ProcessPdfPage} from "@the_library/db";
+import {hasStartedBestBookCoverContest, loadVotesForSlot} from "@//ts/vote.ts";
 
 const props = defineProps({
   slotId: Number
 })
-const db = dump()
+const voted = loadVotesForSlot(props.slotId)
+const book = voted.length>0 ? Book.Load(voted[0].link1) : null
 
-const hasVoteDb = db.has(Vote.type)
-const votes = hasVoteDb ? Array.from(db.get(Vote.type).values()) : []
+const voteLink = hasStartedBestBookCoverContest() ? `/vote/selectFromFavorite/${props.slotId}` : '/help/voteBestCover'
 
-const voted = votes.filter(v => v.action == VoteAction.FavoriteSlotId && v.link2 === props.slotId).sort((a,b) => b.ts - a.ts)
+if (voted.length>0) {
+  console.log(`calling processPdfPage for ${book.pdf}, page=${voted[0].link2}`)
+  ProcessPdfPage(book.pdf, voted[0].link2)
+}
 
-const book = voted.length>0 ? Book.Load(voted[0].targetId) : null
-
-const allVotes = votes.filter(v => v.name === VoteAction.FavoritePages)
-
-const voteLink = allVotes.length>0 ? `/vote/selectFromFavorite/${props.slotId}` : '/help/voteBestCover'
-
-
-
-console.log('voted', voted)
 </script>
 
 <template>
@@ -40,12 +35,12 @@ console.log('voted', voted)
     </v-card-actions>
   </v-card>
   <div v-else>
-  <v-card class="pa-0 mb-3" elevation="3" >
+  <v-card class="pa-0 my-3" elevation="3" color="secondary">
     <v-card-title>
-      <h3 class="text-primary">Contest activated</h3>
+      <h3><u>Contest activated</u></h3>
     </v-card-title>
     <v-card-title>
-      You have activated a vote contest.
+      You are invited in a group vote review.
     </v-card-title>
     <v-card-text>
       <p>3 minutes of your time to elect the top 50</p>
@@ -56,7 +51,7 @@ console.log('voted', voted)
     </v-card-actions>
   </v-card>
     <v-card>
-    <Page :file-id="voted[0].extraData.bookPdf" :page="voted[0].extraData.selectedPage" :ratio="0.7"/>
+    <Page :file-id="book.pdf" :page="voted[0].link2" :ratio="0.7"/>
 
       <v-card-actions class="justify-center">
         <v-btn color="secondary" size="large" variant="outlined" :to="`/vote/selectFromFavorite/${slotId}`">CLICK TO CHANGE</v-btn>

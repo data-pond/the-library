@@ -1,26 +1,15 @@
 <script setup lang="ts">
-
-import {computed, type Ref, watchEffect} from "vue";
 import {
-  Book,
   DownloadState,
-  DownloadTagBookCovers,
-  DSafeGenericFilter,
-  getFile,
-  getFileStatus,
-  MimeTypes, Tag
 } from "@the_library/db";
 import Image from "@/components/image.vue";
-import {useRouter} from "vue-router";
 import {useBookList} from "@//ts/book.ts";
 
 const props = defineProps({
-  topicId: Number,
+  bookIds: Array,
 })
 
-const topic = computed(() => Tag.Load(props.topicId))
-
-const {books, status, bookAction} = useBookList(topic.value.booksIds, useRouter())
+const {books, status, bookAction} = useBookList(props.bookIds)
 
 </script>
 
@@ -51,7 +40,7 @@ const {books, status, bookAction} = useBookList(topic.value.booksIds, useRouter(
                              indeterminate></v-progress-linear>
           <v-chip color="red" class="text-h5" v-else-if="status.get(book.pdf).value== DownloadState.Error">Error
           </v-chip>
-          <v-chip v-else class="text-red">Undefined - fuckedup</v-chip>
+          <v-chip v-else class="text-red">Undefined - Broken</v-chip>
 
         </v-card-text>
 

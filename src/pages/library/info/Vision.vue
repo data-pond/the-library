@@ -10,12 +10,17 @@
     <v-card-subtitle>
       A functional model
     </v-card-subtitle>
-    <v-card-text >
+    <v-card-text  style="max-height: 5rem;min-height: 5rem">
       The Library is a project built on TRUST.
     </v-card-text>
-    <v-card-actions class="justify-end align-self-end align-content-end ">
-      <v-btn color="primary" size="large" to="/vision" target="_blank">
-        learn more
+    <v-card-actions class="justify-start mt-2">
+
+        <v-btn to="/vision"  color="black"
+               variant="tonal" rounded
+               class="px-4"
+               border   append-icon="mdi-chevron-right">
+
+          <strong>learn more</strong>
       </v-btn>
     </v-card-actions>
   </v-card>

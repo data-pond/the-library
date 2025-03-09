@@ -12,7 +12,11 @@ const dev = false && import.meta.env.MODE === "development"
 <template>
   <v-app-bar   elevation="5">
 
-    <div class="pl-5 text-h6">Library Admin</div>
+
+     <span class="text-h5 hidden-sm-and-down">
+          <v-icon icon="mdi-bookshelf" size="2rem" color="black" class="pl-2"/>
+          <strong class="ml-1">The Library Admin</strong>
+        </span>
 
     <v-spacer />
     <slot name="actions"></slot>
@@ -25,7 +29,8 @@ const dev = false && import.meta.env.MODE === "development"
     <v-btn v-if="dev" color="primary" variant="flat"  class="mx-2" elevation="2" to="/admin/catalogAdmin" >Catalog</v-btn>
     <v-btn v-if="dev" color="primary" variant="flat"  class="mx-2" elevation="2" to="/admin/fixes" >Fixes</v-btn>
 
-    <v-btn color="primary"  size="small" variant="flat"  class="mx-2" elevation="2" to="/" >open Public Library</v-btn>
+    <v-btn color="primary-darken-2"  size="large" variant="flat"  class="mx-2"
+           elevation="2" to="/" >open Public Library</v-btn>
 <!--    <v-btn color="primary" variant="elevated" elevation="2" density="compact">elevated</v-btn>-->
 
 

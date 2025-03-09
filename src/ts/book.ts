@@ -1,9 +1,12 @@
-import {computed, type ComputedRef, type Ref, ref} from "vue";
+import {computed, type ComputedRef, type Ref, ref, watchEffect} from "vue";
 import {
-    type Book,
+    Book,
     type BookData,
     DateUtils,
-    DownloadState, getFile,
+    DownloadState,
+    DownloadTagBookCovers,
+    DSafeGenericFilter,
+    getFile,
     getFileStatus,
     getMuStatus,
     getPdfWorkerSettings,
@@ -13,6 +16,45 @@ import {
     storeLocalFile
 } from "@the_library/db";
 import {addInvalidBookCover, isInvalidCover} from "@//db";
+import {type Router} from "vue-router";
+
+export const useBookList = (bookIds: Array<number>) => {
+    const books = computed(() =>bookIds.filter((id: number) => DSafeGenericFilter(id, Book.type)).map((id: number) => Book.Load(id)))
+    const status = new Map<string, Ref<DownloadState>>();
+    watchEffect((() => {
+        books.value.forEach(book => {
+            getFile(book.coverImage, MimeTypes.IMAGE).catch(console.error)
+            status.set(book.pdf, getFileStatus(book.pdf));
+        })
+    }))
+
+
+
+
+    const bookAction = (bookid: number) => {
+
+        const book = Book.Load(bookid)
+        const bookStatus = status.get(book.pdf).value
+
+        console.log('Book Status', bookStatus, book)
+
+        switch (bookStatus) {
+            case  DownloadState.Done:
+                return true
+                break;
+            case DownloadState.Error:
+                alert("This book PDF is broken")
+                return true
+                break
+            default: {
+                getFile(book.pdf, MimeTypes.PDF).catch(console.error)
+                return true
+            }
+        }
+    }
+
+    return {books, status, bookAction}
+}
 
 export const useAccessBook = (book: ComputedRef<Book>) => {
     const pdfSettings = getPdfWorkerSettings()

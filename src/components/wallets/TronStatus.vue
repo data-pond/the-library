@@ -1,124 +1,52 @@
 <script setup lang="ts">
 // @ts-ignore
 import {onMounted, ref} from "vue";
-import {type PatchCollection, proResolver} from "@the_library/db";
+import {
+  GetActivitiesToSync, getAllPatchesSince,
+  GetPatchesToSync, GetSyncStats, loadSyncedData,
+
+  proResolver,
+  SyncPatches,
+  SyncProvider
+} from "@the_library/db";
 import abi from './abi.json'
 import {TronConfig} from "@//components/wallets/config.ts";
-
-window.addEventListener('message', function (e) {
-  console.log('received action message: ', e.data.message.action)
-  if (e.data.message && e.data.message.action == "tabReply") {
-    // console.log("tabReply event", e.data.message)
-
-    // if(e.data.message.data.data.code ===4000){
-    //   console.log("Authorization requests are being processed, please do not resubmit")
-    // } else if (e.data.message.data.data.node.chain == '_'){
-    //   console.log("tronLink currently selects the main chain")
-    // }else{
-    //   console.log("tronLink currently selects the side chain")
-    // }
-  }
-
-  if (e.data.message && e.data.message.action == "setAccount") {
-    console.log("setAccount event", e.data.message)
-    console.log("current address:", e.data.message.data.address)
-
-  }
-  if (e.data.message && e.data.message.action == "setNode") {
-    console.log("setNode event", e.data.message)
-    if (e.data.message.data.node.chain == '_'){
-      console.log("tronLink currently selects the main chain")
-    }else{
-      console.log("tronLink currently selects the side chain")
-    }
-
-    // Tronlink chrome v3.22.1 & Tronlink APP v4.3.4 started to support
-    if (e.data.message && e.data.message.action == "connect") {
-      console.log("connect event", e.data.message.isTronLink)
-    }
-
-    // Tronlink chrome v3.22.1 & Tronlink APP v4.3.4 started to support
-    if (e.data.message && e.data.message.action == "disconnect") {
-      console.log("disconnect event", e.data.message.isTronLink)
-    }
-
-    // Tronlink chrome v3.22.0 & Tronlink APP v4.3.4 started to support
-    if (e.data.message && e.data.message.action == "accountsChanged") {
-      console.log("accountsChanged event", e.data.message)
-      console.log("current address:", e.data.message.data.address)
-    }
-
-    // Tronlink chrome v3.22.0 & Tronlink APP v4.3.4 started to support
-    if (e.data.message && e.data.message.action == "connectWeb") {
-      console.log("connectWeb event", e.data.message)
-      console.log("current address:", e.data.message.data.address)
-    }
-
-    // Tronlink chrome v3.22.0 & Tronlink APP v4.3.4 started to support
-    if (e.data.message && e.data.message.action == "accountsChanged") {
-      console.log("accountsChanged event", e.data.message)
-    }
-
-    // Tronlink chrome v3.22.0 & Tronlink APP v4.3.4 started to support
-    if (e.data.message && e.data.message.action == "acceptWeb") {
-      console.log("acceptWeb event", e.data.message)
-    }
-    // Tronlink chrome v3.22.0 & Tronlink APP v4.3.4 started to support
-    if (e.data.message && e.data.message.action == "disconnectWeb") {
-      console.log("disconnectWeb event", e.data.message)
-    }
-
-    // Tronlink chrome v3.22.0 & Tronlink APP v4.3.4 started to support
-    if (e.data.message && e.data.message.action == "rejectWeb") {
-      console.log("rejectWeb event", e.data.message)
-    }
-
-  }
-})
+//
+// window.addEventListener('message', function (e) {
+//   console.log('received action message: ', e.data)
+//   return;
+// })
 
 const tronlinkInstalled = ref(false)
 
 const tronlinkConnected = ref(false)
 
-async function getTronWeb() {
-  let tronWeb;
-  if (window.tronLink) {
-    if (window.tronLink.ready) {
-      tronWeb = tronLink.tronWeb;
-    } else {
-      const res = await tronLink.request({method: 'tron_requestAccounts'});
-      if (res.code === 200) {
-        tronWeb = tronLink.tronWeb;
-      }
-    }
-    return tronWeb;
-  }
-  return null;
-}
+const nbRecordsToSync = ref(0)
+loadSyncedData().then(syncedData => {
+  getAllPatchesSince(syncedData.syncCounter.patch.tron).then((patchCollection) => {
+    const total = Object.values(patchCollection).reduce((acc, value) => {
+      return acc + Object.keys(value).length
+    }, 0);
+    nbRecordsToSync.value = total;
+  })
 
-const params = encodeURIComponent(JSON.stringify({
-  "url": "https://www.datapond.earth", //target DApp
-  "dappIcon": "https://datapond.earth/icon.png",
-  "dappName": "Test demo",
-  "action": "login",
-  'actionId': "no fucking clue",
-  "protocol": "tronlink",
-  "version": "1.0"
-}))
+});
+
 
 onMounted(async () => {
 
-  if (window.tronLink ) {
+  if (window.tronLink) {
     tronlinkInstalled.value = true
     console.log('TRONLINK IS INSTALLED')
-    await window.tronLink.request( {
+    await window.tronLink.request({
       method: 'tron_requestAccounts',
       params: {
         websiteIcon: 'https:://datapond.earth/icon.png',
         websiteName: 'The Library',
         dappIcon: "https://datapond.earth/icon.png",
-        dappName: "Test demo",
-      } } ).then(res => {
+        dappName: "The Library",
+      }
+    }).then(res => {
       console.log('request ok? ', res)
       tronlinkConnected.value = true
     })
@@ -133,7 +61,7 @@ const _tronWeb = proResolver<any>();
 
 if (window.tronWeb) {
   _tronWeb.resolve(window.tronWeb.contract(abi.abi, contractAddress))
-} else  {
+} else {
   const interval = setInterval(async () => {
     if (window.tronWeb) {
       _tronWeb.resolve(window.tronWeb.contract(abi.abi, contractAddress))
@@ -142,39 +70,124 @@ if (window.tronWeb) {
   }, 1000)
 }
 
+const hasAccount = ref(false)
+const loading = ref(false)
+const nbPatches = ref(0);
+const tronInfos = ref({})
+const checkHasAccount = async (): Promise<boolean> => {
 
-const hasAccount = async (): Promise<boolean> => {
+  loading.value = true
+  console.log('Window tronlink', window.tronLink);
   const contract = await _tronWeb.pro
   let result = await contract.hasAccount().call();
   console.log('has account', result);
+  hasAccount.value = result[0]
+  if (hasAccount.value) {
+    const myInfos = await contract.myInfos().call();
+    console.log('myInfos', myInfos)
+    tronInfos.value = myInfos.info
+  }
+  loading.value = false
 }
-
+checkHasAccount();
 // minimum 5 TRX to register
-const registerAccount = async (accountName: string, country: string, language: string, donation: number) => {
+const registerAccount = async () => {
+  if (userName.value.length < 3) {
+    return false
+  }
+  loading.value = true
   const contract = await _tronWeb.pro
-  let result = await contract.register(accountName, country, language, donation).call();
+  let result = await contract.register(userName.value, 'australia', 'en', 1).send();
   console.log('registerAccount', result)
+  checkHasAccount()
+}
+
+const error = ref(null)
+const executing = ref(false)
+const waitingForWalletAction = ref(false)
+const syncTron = async () => {
+  executing.value = true
+  const patches = await GetPatchesToSync(SyncProvider.BTCore)
+  console.log("Patches loaded Length:", patches)
+  if (patches === null) {
+    return
+  }
+  console.log('patches ', patches)
+  try {
+    const patchesParameters = new Uint8Array(patches);
+    waitingForWalletAction.value = true;
+    const contract = await _tronWeb.pro;
+    const result = await contract.addPatches(patchesParameters).send();
+    waitingForWalletAction.value = false;
+    console.log('synced Results:', result);
+
+    const patchesFromContract = await contract.loadPatches().call();
+    console.log('All Patches', patchesFromContract);
+    const activityFromContract = await contract.loadActivity().call();
+    console.log('All Activities', activityFromContract);
+
+    await SyncPatches(SyncProvider.Tron)
+    console.log('patch counter synced')
+    await checkHasAccount()
+    console.log('stats reloaded')
+  } catch (e) {
+    error.value = {
+      e,
+      msg: 'Error while saving your votes'
+    }
+  }
+
+  executing.value = false;
 }
 
 
-
-const loadMyAccount = async (sinceTs: number): Promise<PatchCollection> => {
-  const contract = await _tronWeb.pro
-  const result = await contract.loadPatches().call();
-  console.log('loadMyAccount', result)
-}
-
-const savePatches = async (data: ArrayBuffer): Promise<true> => {
-  const contract = await _tronWeb.pro
-  const result = await contract.addPatches(data).call();
-  console.log('savePatches', result)
-}
-
+const userName = ref('')
 </script>
 
 <template>
   <div v-if="tronlinkConnected">
-    <slot></slot>
+    <v-card>
+      <v-card-title>
+        Tron Status
+      </v-card-title>
+      <v-card-text>
+
+        Tron Link is Connected
+
+      </v-card-text>
+      <v-card-text v-if="hasAccount && !loading">
+        UserName: {{ tronInfos.username }}
+        <br/>
+        Patch needed to Sync: {{ nbRecordsToSync }}
+      </v-card-text>
+      <v-card-text v-if="!hasAccount && !loading">
+        <v-text-field label="Username" v-model="userName" placeholder="Your Username"/>
+        <v-btn @click="registerAccount()">Register</v-btn>
+      </v-card-text>
+      <v-card-actions class="justify-end" v-if="hasAccount && !loading">
+        <v-btn variant="outlined" @click="syncTron()">
+          CLICK TO SYNC NOW
+        </v-btn>
+      </v-card-actions>
+    </v-card>
+
+    <v-card class="mt-2">
+      <v-card-title>
+        Share Your version
+      </v-card-title>
+      <v-card-text>
+        here is a generated link for you to share with your friends.
+        <br/>
+        <a href="/#/libraryConnect/share">
+          https://datapond.earth/#/tron/USERNAME
+        </a>
+      </v-card-text>
+      <v-card-actions class="justify-end">
+        <v-btn>
+          CLICK TO SYNC NOW
+        </v-btn>
+      </v-card-actions>
+    </v-card>
   </div>
   <!--  <a :href='`tronlink://pull.activity?param={${params}}`'>Open DApp</a>-->
   <v-chip v-else-if="tronlinkInstalled" color="success" text-color="white">

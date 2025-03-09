@@ -1,19 +1,23 @@
 <script setup lang="ts">
 
 import Layout from "@//pages/library/help/Layout.vue";
-import {Book, dump, Vote} from "@the_library/db";
+import {Book} from "@the_library/db";
 
 import Page from "@//components/page.vue";
 import {ref} from "vue";
+import {ProcessPdfPage} from "@the_library/db";
+import {loadFavoritePageVotes} from "@//ts/vote.ts";
 
-
-
-const data = dump().get(Vote.type)
-const allVotes = data ? Array.from(data.values()).filter(v => v.name === 'Best Page Vote Contest').map(v => ({
+const allVotes = loadFavoritePageVotes().map(v => ({
   vote: v,
-  book: Book.Load(v.targetId)
-})) : []
+  book: Book.Load(v.link1)
+}));
 
+allVotes.forEach(({vote, book}) => {
+  console.log(vote)
+  console.log(`calling processPdfPage for ${book.pdf}, page=${vote.link2}`)
+  ProcessPdfPage(book.pdf, vote.link2)
+})
 const activeVoteId = ref(null)
 const interactWith = (vote:any) => {
   activeVoteId.value = vote.vote.id;
@@ -38,7 +42,7 @@ const interactWith = (vote:any) => {
 
           </v-card>
         </v-col>
-        <v-col cols="6" md="4">
+        <v-col cols="12" md="4">
           <v-card elevation="3"  style="height:100%">
 
             <v-card-text class="justify-center align-content-center fill-height text-center">
@@ -56,7 +60,7 @@ const interactWith = (vote:any) => {
 
           </v-card>
         </v-col>
-        <v-col cols="6" md="4">
+        <v-col cols="12" md="4">
           <v-card elevation="3"  style="height:100%">
 
             <v-card-text class="justify-center align-content-center fill-height text-center">
@@ -71,10 +75,11 @@ const interactWith = (vote:any) => {
           </v-card>
         </v-col>
 
-        <v-col cols="6" md="4" v-for="vote in allVotes">
+        <v-col cols="12" md="4" v-for="vote in allVotes">
           <v-card @click="interactWith(vote)">
 
-            <Page :file-id="vote.book.pdf" :page="vote.vote.link1" :ratio="0.7"/>
+
+            <Page :file-id="vote.book.pdf" :page="vote.vote.link2" :ratio="0.7"/>
 
             <v-row class=" position-absolute text-center"
                    align-content="space-around"

@@ -32,18 +32,22 @@ const vuetify = createVuetify({
         },
     },
     theme: {
+        variations: {
+            colors: ['primary', 'secondary'],
+            lighten: 1,
+            darken: 2,
+        },
         themes: {
             light: {
                 dark: false,
                 colors: {
-                    primary: colors.blue.darken3,
+                    primary: "#4e55e4",
                     secondary: colors.deepOrange.darken2,
                     accent: colors.lightBlue.accent1,
                     error: colors.red.accent3,
                     info: colors.deepOrange.darken1,
                     success: colors.green.accent3,
                     warning: colors.amber.darken3,
-
                 }
             },
         },
