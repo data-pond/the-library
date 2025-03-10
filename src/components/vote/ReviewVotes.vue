@@ -1,7 +1,18 @@
 <script setup lang="ts">
 
-import {getAllPatchesSince,Tag, loadSyncedData, SyncProvider, ActivityAction, Activity, Book} from "@the_library/db";
+import {
+  getAllPatchesSince,
+  Tag,
+  loadSyncedData,
+  SyncProvider,
+  ActivityAction,
+  Activity,
+  Book,
+  GetPatchesToSync, SyncPatches
+} from "@the_library/db";
 import {ref} from 'vue'
+import {useCoreContract} from "@//ts/core.ts";
+import {useRouter} from "vue-router";
 /**
  * export enum ActivityAction {
  *     VisitBook,
@@ -85,6 +96,36 @@ loadSyncedData().then((data) => {
   })
 })
 
+
+const {savePatches} = useCoreContract()
+
+const executing = ref(false);
+const error = ref(null)
+
+const router = useRouter();
+
+const sync = async () => {
+  executing.value = true
+  const patches = await GetPatchesToSync(SyncProvider.BTCore)
+  console.log("Patches loaded Length:", patches)
+  if (patches === null) {
+    executing.value = false
+    return
+  }
+  try {
+    await savePatches(patches)
+    router.push('/account')
+  } catch (e) {
+    error.value = {
+      e,
+      msg: 'Error while saving your votes'
+    }
+  }
+  executing.value = false
+
+}
+
+
 </script>
 
 <template>
@@ -141,9 +182,7 @@ loadSyncedData().then((data) => {
         </v-col>
 
     </v-card-item>
-    <v-card-actions>
-      <v-btn color="primary" size="x-large" append-icon="mdi-chevron-right" variant="tonal" rounded class="px-4">VOTE NOW</v-btn>
-    </v-card-actions>
+
 
   </v-card>
 
@@ -154,9 +193,21 @@ loadSyncedData().then((data) => {
         <strong>Confirm</strong>
       </v-card-title>
 
-      <v-card-actions class="bg-white py-6">
-        <v-btn variant="tonal" rounded>
-          Vote Now
+      <v-card-actions class="bg-white py-6 justify-space-between" >
+        <v-btn variant="elevated"
+               color="primary"
+               :loading="executing"
+               size="large"
+               @click="sync()" append-icon="mdi-chevron-right" prepend-icon="mdi-vote">
+          <strong>Vote Now</strong>
+        </v-btn>
+
+        <v-btn variant="elevated"
+               color="warning"
+               size="large"
+               to="/account"
+                append-icon="mdi-chevron-right" prepend-icon="mdi-cancel">
+          <strong>Cancel</strong>
         </v-btn>
       </v-card-actions>
     </v-card>

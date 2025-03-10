@@ -64,9 +64,21 @@ const checker = async () => {
 
 }
 
+
+
 onMounted( () => {
   checker();
 })
+
+const freeTCoreLinkClicked = ref(false)
+const  copyToClipboard = () =>  {
+  const input = document.createElement('input');
+  input.value = account.value;
+  document.body.appendChild(input);
+  input.select();
+  document.execCommand('copy');
+  document.body.removeChild(input);
+}
 
 // setInterval(() => {
 //   check()
@@ -133,7 +145,7 @@ onMounted( () => {
       </v-col>
 
       <v-col cols="12">
-      <v-card elevation="6">
+      <v-card elevation="6" :disabled="step<2">
         <v-card-item class="mb-3">
 
           <v-row>
@@ -147,16 +159,17 @@ onMounted( () => {
           </v-row>
         </v-card-item>
 
-        <v-card-text>
+        <v-card-text v-if="!metamaskConnected">
           Please open your Metamask wallet and accept the datapond.earth connection request.
         </v-card-text>
-        <v-card-text >
+        <v-card-text v-if="!coreInstalled && metamaskConnected">
           Please open your Metamask wallet and accept the tCORE New network. When you are ready, click the check network button below.
+        </v-card-text>
+        <v-card-text v-if="coreInstalled">
+          Your tCORE network settings are fully configured.
         </v-card-text>
 
         <v-card-text>
-
-          <v-progress-linear color="primary" height="2rem" :mode="50" />
 
 
         <v-banner color="primary" class="bg-blue-lighten-5">
@@ -170,8 +183,18 @@ onMounted( () => {
         </v-card-text>
         <v-card-actions>
 
-          <v-btn variant="elevated" color="primary" prepend-icon="mdi-cog" append-icon="mdi-chevron-right">
+          <v-btn variant="elevated" color="primary"
+                 v-if="!coreInstalled"
+                 @click="requestNewNetwork()"
+                 prepend-icon="mdi-cog" append-icon="mdi-chevron-right">
             CHECK  NETWORK
+          </v-btn>
+          <v-btn variant="elevated" color="success"
+                 v-if="coreInstalled"
+                 append-icon="mdi-check-bold" prepend-icon="mdi-cog">
+
+            Core SETup Operational
+
           </v-btn>
 
         </v-card-actions>
@@ -181,7 +204,7 @@ onMounted( () => {
       </v-col>
 
       <v-col cols="12">
-        <v-card elevation="6">
+        <v-card elevation="6" :disabled="step<3">
           <v-card-item>
 
             <v-row>
@@ -197,7 +220,7 @@ onMounted( () => {
 
           <v-card-item class="bg-grey-lighten-3 ma-4">
             <p>
-              Your Wallet Address:
+              Your Core Chain Address:
             </p>
 
             <v-row class="bg-white my-3 pa-2">
@@ -206,7 +229,7 @@ onMounted( () => {
                 {{account}}
               </v-col>
               <v-col cols="2" class="justify-end text-right">
-                <v-btn size="small" prepend-icon="mdi-content-copy">
+                <v-btn size="small" prepend-icon="mdi-content-copy" @click="copyToClipboard">
                   Copy
                 </v-btn>
               </v-col>
@@ -214,115 +237,44 @@ onMounted( () => {
 
           </v-card-item>
 
+          <v-card-item>
+            Copy your CoreChain Address, and then click the CLAIM YOUR FREE tCORE button below. Paste your address, and you will receive 1 Free tCORE.
+          </v-card-item>
+
           <v-card-actions>
-            <v-btn variant="elevated" color="success" block prepend-icon="mdi-gift" append-icon="mdi-chevron-right">
+            <v-btn variant="elevated" color="accent"
+                   href="https://scan.test.btcs.network/faucet"
+                   target="_blank"
+                   @click="freeTCoreLinkClicked=true"
+                   block prepend-icon="mdi-gift" append-icon="mdi-chevron-right">
 
               Claim your free tCORE
             </v-btn>
           </v-card-actions>
           <v-card-actions>
-            <v-btn variant="tonal" color="black" block prepend-icon="mdi-gift" append-icon="mdi-chevron-right">
+            <v-btn variant="elevated" color="primary"
+                   :disabled="!freeTCoreLinkClicked"
+                   to="/wallet/registerTCore"
+                   block prepend-icon="mdi-party-popper" append-icon="mdi-chevron-right">
 
               Finish Setup
             </v-btn>
           </v-card-actions>
         </v-card>
       </v-col>
+      <v-col cols="12">
+        <v-card elevation="6" >
+          <v-card-actions>
+            <v-btn variant="elevated" color="red-darken-4"
+                   to="/account"
+                   block prepend-icon="mdi-clock" append-icon="mdi-chevron-right">
+
+              Finish Later
+            </v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-col>
     </v-row>
-    <v-row>
-    <v-stepper-vertical v-model="step">
-      <template v-slot:default="{ step }">
-        <v-stepper-vertical-item
-            :complete="step > 1"
-            subtitle="Install & Connect Metamask"
-            title="MetaMask"
-            hide-actions
-            :value="1"
-        >
-          <div v-if="!metaMaskInstalled">
-          <p v-if="!metaMaskInstalled">
-            MetaMask is the most used crypto wallet on the web.
-          </p>
-
-          <p  v-if="!metaMaskInstalled">
-            Follow the instruction @ the official Metamask Website to install it, then come back at this page.
-          </p>
-          <p  v-if="!metaMaskInstalled">
-            It will auto detect the installation, and go to step 2.
-          </p>
-          <v-btn variant="tonal" color="black"
-                 :disabled="metaMaskInstalled"
-                 v-if="!metaMaskInstalled"
-                 href="https://metamask.io/" target="_blank"
-                 append-icon="mdi-arrow-right" prepend-icon="mdi-download">
-            Install MetaMask
-          </v-btn>
-
-          </div>
-          <div v-else>
-
-            <p>Accept the New Login Request in your metamask Wallet</p>
-
-            <v-img src="/img/connectMetamask.png" height="40rem" />
-          </div>
-
-
-          <template v-slot:prev></template>
-        </v-stepper-vertical-item>
-
-        <v-stepper-vertical-item
-            :complete="step > 2"
-            subtitle="Metamask Automatic Config of the tCORE Network"
-            title="CORE Setup"
-            hide-actions
-            :value="2"
-        >
-          <p>Please Open your Metamask wallet and accept the tCORE New network.</p>
-
-          <v-img src="/img/metamask_add_network.png" height="40rem" />
-
-          <p>
-            When you are ready, Click the check network button below.
-          </p>
-
-          <v-btn color="primary" @click="requestNewNetwork()">
-            Check tCORE Network
-          </v-btn>
-
-
-        </v-stepper-vertical-item>
-
-        <v-stepper-vertical-item
-            subtitle="Load a free tCORE in your Wallet"
-            title="1 Free tCORE"
-            hide-actions
-            value="3"
-        >
-          <v-btn>Click here to Copy your Account Key </v-btn> and paste it at the URL below.
-
-          <br />
-          <p><strong>Your Account ID:</strong> {{account}}</p>
-          <br />
-
-          <br />
-          <v-btn variant="tonal" color="black"
-                 :disabled="!coreInstalled"
-                 href="https://scan.test.btcs.network/faucet"
-                 target="_blank"
-                 append-icon="mdi-arrow-right" prepend-icon="mdi-currency-usd">
-            Open URL To get 1 Free coin
-          </v-btn>
-
-
-          <v-btn color="primary" >
-            Finish
-          </v-btn>
-
-        </v-stepper-vertical-item>
-      </template>
-    </v-stepper-vertical>
-    </v-row>
-
   </v-container>
 </template>
 

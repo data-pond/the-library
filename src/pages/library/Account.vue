@@ -2,17 +2,12 @@
 
 import Layout from "@//pages/library/Layout.vue";
 import {hasStartedBestBookCoverContest} from "@//ts/vote.ts";
-import {getAllPatches, loadSyncedData} from "@the_library/db";
 import {onMounted, ref} from 'vue'
-import {getAllPatchesSince, getNbPatches} from "@the_library/db";
 import {useCoreConnect, useCoreContract} from "@//ts/core.ts";
+import {useLevel} from "@//ts/level.ts";
 
 const bookCoverLink = hasStartedBestBookCoverContest() ? `/vote/bestCovers` : '/help/voteBestCover'
 
-const currentLevel = ref(null)
-const progress = ref(0)
-const computingLevel = ref(true)
-const levelUp = ref(false)
 
 
 const {
@@ -25,7 +20,8 @@ const {
   account,
   userRejectedAppConnect,
   requestNewNetwork,
-  networkError
+  networkError,
+    check
 } = useCoreConnect();
 
 const {hasAccount, getBalance} = useCoreContract()
@@ -33,41 +29,17 @@ const {hasAccount, getBalance} = useCoreContract()
 const has = ref(false)
 
 onMounted(async () => {
-  checkMetamaskInstalled()
-  await connectToMetaMask()
-  await checkNetworkOk()
-  if (coreInstalled.value) {
-    has.value = await hasAccount()
-    if (has.value) {
-      const bal = await getBalance()
-      console.log('bal:', bal)
+  check().then(async () => {
+    if (coreInstalled.value) {
+      has.value = await hasAccount()
     }
-  }
+  })
 })
 
 
-
-getAllPatches().then(async (patches) => {
-
-  const syncedData = await loadSyncedData();
-  console.log(syncedData);
-  console.log('syncedData', syncedData.syncCounter.activity.btc,
-      syncedData.syncCounter.patch.btc);
-
-  const pendingPatches = await getAllPatchesSince(syncedData.syncCounter.patch.btc);
-  const nbPendingPatches = Object.values(patches).reduce((acc, value) => {
-    return acc + Object.keys(value).length
-  }, 0)
+const {loading: levelLoading, level, levelUp, progress} = useLevel()
 
 
-  levelUp.value = nbPendingPatches >= 10;
-
-  currentLevel.value = Math.ceil(nbPendingPatches / 10);
-
-  progress.value = 10 * (nbPendingPatches % 10)
-
-  computingLevel.value = false
-})
 </script>
 
 <template>
@@ -89,8 +61,6 @@ getAllPatches().then(async (patches) => {
                   <v-col cols="9" md="8">
                     <h1>Install CORE to enable community voting !</h1>
 
-                    {{metaMaskInstalled}} -
-                    {{metamaskConnected}} - {{coreInstalled}}
                     <p>
                       Unlock community features, track your progress, and vote on your favorite books.
                     </p>
@@ -110,9 +80,9 @@ getAllPatches().then(async (patches) => {
 
 
           <v-col cols="12" md="6">
-            <v-card elevation="3">
+            <v-card elevation="3" class="fill-height">
               <v-card-title>
-                Level {{ currentLevel }}
+                Level {{ level }}
               </v-card-title>
               <v-card-text style="max-height: 7rem;min-height: 7rem">
                 <p>Progress until next level</p>
@@ -144,19 +114,18 @@ getAllPatches().then(async (patches) => {
             </v-card>
           </v-col>
           <v-col cols="12" md="6" v-else>
-            <v-card elevation="3" color="yellow" class="fill-height">
+            <v-card elevation="3" color="yellow" class="fill-height" to="/wallet/core">
               <v-card-title>
                 Level Up
               </v-card-title>
-              <v-card-subtitle>
-                Sync your data on CORE
-              </v-card-subtitle>
               <v-card-text>
-                When reaching next level , you'll be able to use CORE to vote.
+                <br />
+                Sync your data on CORE
+                <br />
               </v-card-text>
-              <v-card-actions>
-                <v-btn size="large">
-                  Vote Now !
+              <v-card-actions class="bg-white">
+                <v-btn size="large" variant="elevated" color="accent">
+                  Sync Now !
                 </v-btn>
               </v-card-actions>
             </v-card>

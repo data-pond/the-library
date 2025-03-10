@@ -2,9 +2,9 @@
 // @ts-ignore
 import {onMounted, ref} from "vue";
 import {
-  GetActivitiesToSync, getAllPatchesSince,
-  GetPatchesToSync, GetSyncStats, loadSyncedData,
-
+  getAllPatchesSince,
+  GetPatchesToSync,
+  loadSyncedData,
   proResolver,
   SyncPatches,
   SyncProvider

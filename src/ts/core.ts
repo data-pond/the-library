@@ -3,10 +3,23 @@ import {Web3Provider} from "@ethersproject/providers";
 import LibraryArtifact from '@//components/wallets/Library2.json';
 import {CoreConfig} from "@//components/wallets/config.ts";
 import {Contract} from "ethers"
+import {proResolver, SyncPatches, SyncProvider} from "@the_library/db";
 const LibraryAbi = LibraryArtifact.abi;
 const contractAddress = CoreConfig.contractId;
 
 export const useCoreContract = () => {
+
+    if (typeof window.ethereum === 'undefined') {
+        const errFn = () => console.error(`Wallet not installed`)
+        return {
+            usernameExists:errFn,
+            savePatches:errFn,
+            hasAccount:errFn,
+            register:errFn,
+            getBalance:errFn,
+            userRejectedAppConnect: errFn
+        }
+    }
 
     const provider = new Web3Provider(window.ethereum); // Updated to Web3Provider
     const signer = provider.getSigner();
@@ -17,8 +30,40 @@ export const useCoreContract = () => {
 
     const hasAccount = () =>  contract.hasAccount();
 
-    const register = (username: string) =>
-        contract.register(username, Intl.DateTimeFormat().resolvedOptions().timeZone, navigator.language, 1);
+    const userRejectedAppConnect = ref(false)
+    const register = async (username: string) => {
+        try {
+            userRejectedAppConnect.value = false;
+            await contract.register(username, Intl.DateTimeFormat().resolvedOptions().timeZone, navigator.language, 1);
+        } catch(err) {
+            if (err.code === 'ACTION_REJECTED') {
+                // EIP-1193 userRejectedRequest error.
+                // If this happens, the user rejected the connection request.
+                userRejectedAppConnect.value = true;
+            } else {
+                console.log('Error code ', err.code)
+                console.error(err)
+            }
+            throw err
+        }
+    }
+
+    const savePatches = async (buff: ArrayBuffer) => {
+
+        if (buff.byteLength===0) {
+            return
+        }
+        const patchesParameters = new Uint8Array(buff);
+
+        console.log('contract:', contract)
+        const _tx = await contract.addPatches(Array.from(patchesParameters));
+        console.log('addPatches Results:', _tx);
+        const tx = await _tx.getTransaction();
+        await tx.wait()
+        console.log('done waiting')
+        await SyncPatches(SyncProvider.BTCore)
+
+    }
 
 
     const getBalance = async () => {
@@ -29,7 +74,7 @@ export const useCoreContract = () => {
             ],
         });
     }
-    return {usernameExists, hasAccount, register, getBalance};
+    return {usernameExists, savePatches, hasAccount, register, getBalance, userRejectedAppConnect};
 
 
 }
@@ -43,18 +88,24 @@ export const useCoreConnect = () => {
 
     const checkMetamaskInstalled = () => {
         if (window.ethereum) {
-            console.log('metamask is installed')
             metaMaskInstalled.value = true
-            connectToMetaMask();
         } else {
-            console.log('metamask is NOT installed')
             metaMaskInstalled.value = false
-            setTimeout(() => {
-                checkMetamaskInstalled()
-            }, 5000)
         }
     }
 
+    const launchMetamaskDetection = () => {
+        const pro = proResolver()
+        const interval = setTimeout(() => {
+            checkMetamaskInstalled()
+            if (metaMaskInstalled) {
+                pro.resolve(true)
+                clearInterval(interval)
+            }
+        }, 5000)
+
+        return pro.pro
+    }
     const userRejectedAppConnect = ref(false)
 
     const connectToMetaMask = async () : Promise<boolean>=> {
@@ -141,6 +192,9 @@ export const useCoreConnect = () => {
 
 
     const checkNetworkOk = async () : Promise<boolean> => {
+        if (!metamaskConnected.value) {
+            return false
+        }
         const provider = new Web3Provider(window.ethereum);
         const network = await provider.getNetwork()
         if (network.chainId === 1115) {
@@ -151,9 +205,21 @@ export const useCoreConnect = () => {
         return false;
     };
 
+    const check = async () => {
+        checkMetamaskInstalled()
+        if (!metaMaskInstalled.value) {
+            return
+        }
+        const connected = await connectToMetaMask()
+
+        if (connected && metamaskConnected.value) {
+            await checkNetworkOk()
+        }
+    }
     return {
         userRejectedAppConnect,
         account,
+        check,
         metamaskConnected,
         metaMaskInstalled,
         connectToMetaMask,

@@ -10,9 +10,9 @@ const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone
 const router = useRouter();
 const username = ref(null)
 
-const {register, hasAccount, usernameExists} = useCoreContract();
+const {register, hasAccount, usernameExists, userRejectedAppConnect} = useCoreContract();
 
-const {coreInstalled, checkMetamaskInstalled, checkNetworkOk}  = useCoreConnect()
+const {coreInstalled, checkMetamaskInstalled, checkNetworkOk, account}  = useCoreConnect()
 
 const error = ref(null)
 const checkUsername = () => {
@@ -56,15 +56,16 @@ onMounted(async () => {
 
 
 const connect = async () => {
-  computing.value = true
+
   checkUsername()
   if (error.value) {
     return
   }
-
+  computing.value = true
   const ok = await usernameExists(username.value)
   console.log(ok)
   if (!ok) {
+
     await register(username.value);
     computing.value = false
     const isLevelUp = true;
@@ -81,6 +82,16 @@ const connect = async () => {
 }
 
 const language = window.navigator.language
+
+const  copyToClipboard = () =>  {
+  const input = document.createElement('input');
+  input.value = account.value;
+  document.body.appendChild(input);
+  input.select();
+  document.execCommand('copy');
+  document.body.removeChild(input);
+}
+
 </script>
 
 <template>
@@ -150,7 +161,7 @@ const language = window.navigator.language
 
                 <v-btn size="x-large"
                        @click="connect()"
-                       :loading="computing"
+                       :loading="computing && !userRejectedAppConnect"
                        color="primary" append-icon="mdi-chevron-right">
                   CONNECT
                 </v-btn>
@@ -165,6 +176,50 @@ const language = window.navigator.language
             </v-col>
           </v-row>
         </v-card-item>
+      </v-card>
+    </v-col>
+
+    <v-col cols="12">
+      <v-card elevation="6">
+        <v-card-item>
+          <h2>1 Free tCORE </h2>
+          <h4>Claim one free tCORE token every 24H</h4>
+
+        </v-card-item>
+
+        <v-card-item class="bg-grey-lighten-3 ma-4">
+          <p>
+            Your Core Chain Address:
+          </p>
+
+          <v-row class="bg-white my-3 pa-2">
+            <v-col cols="10">
+
+              {{account}}
+            </v-col>
+            <v-col cols="2" class="justify-end text-right">
+              <v-btn size="small" prepend-icon="mdi-content-copy" @click="copyToClipboard">
+                Copy
+              </v-btn>
+            </v-col>
+          </v-row>
+
+        </v-card-item>
+
+        <v-card-item>
+          Copy your CoreChain Address, and then click the CLAIM YOUR FREE tCORE button below. Paste your address, and you will receive 1 Free tCORE.
+        </v-card-item>
+
+        <v-card-actions>
+          <v-btn variant="elevated" color="primary"
+                 href="https://scan.test.btcs.network/faucet"
+                 target="_blank"
+                  prepend-icon="mdi-gift" append-icon="mdi-chevron-right">
+
+            Claim your free tCORE
+          </v-btn>
+        </v-card-actions>
+
       </v-card>
     </v-col>
   </v-row>
